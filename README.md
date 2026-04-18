@@ -1,5 +1,5 @@
 # LD59
-(https://ldjam.com/events/ludum-dare/59)[LD59 Theme: Signal]
+[LD59 Theme: Signal](https://ldjam.com/events/ludum-dare/59)
 
 # Credits
 Walrushere
