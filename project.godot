@@ -12,16 +12,19 @@ config_version=5
 
 config/name="ld59"
 config/description="Jam-ready Godot project configured for desktop and itch.io exports."
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/flow/main_menu.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[autoload]
+
+SessionState="*res://scripts/session/session_state.gd"
 
 [display]
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
-window/stretch/aspect="keep"
 
 [physics]
 

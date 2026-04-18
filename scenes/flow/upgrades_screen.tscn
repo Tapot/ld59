@@ -1,0 +1,116 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/flow/upgrades_screen.gd" id="1_u79s1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_graph_frame"]
+bg_color = Color(0.1, 0.1, 0.11, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.28, 0.28, 0.3, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="UpgradesScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_u79s1")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.06, 0.07, 1)
+
+[node name="ScreenMargin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="ScreenLayout" type="VBoxContainer" parent="ScreenMargin"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+
+[node name="HeaderRow" type="HBoxContainer" parent="ScreenMargin/ScreenLayout"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="TitleColumn" type="VBoxContainer" parent="ScreenMargin/ScreenLayout/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="ScreenMargin/ScreenLayout/HeaderRow/TitleColumn"]
+layout_mode = 2
+text = "Meta Upgrades"
+
+[node name="SummaryLabel" type="Label" parent="ScreenMargin/ScreenLayout/HeaderRow/TitleColumn"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Spend runes, then start the next run."
+vertical_alignment = 1
+
+[node name="TopRight" type="VBoxContainer" parent="ScreenMargin/ScreenLayout/HeaderRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(340, 0)
+alignment = 1
+theme_override_constants/separation = 10
+
+[node name="RunesLabel" type="Label" parent="ScreenMargin/ScreenLayout/HeaderRow/TopRight"]
+layout_mode = 2
+text = "Runes: 0"
+horizontal_alignment = 2
+
+[node name="ButtonsRow" type="HBoxContainer" parent="ScreenMargin/ScreenLayout/HeaderRow/TopRight"]
+layout_mode = 2
+alignment = 2
+theme_override_constants/separation = 12
+
+[node name="SpawnAgainButton" type="Button" parent="ScreenMargin/ScreenLayout/HeaderRow/TopRight/ButtonsRow"]
+custom_minimum_size = Vector2(150, 50)
+layout_mode = 2
+text = "Spawn Again"
+
+[node name="MainMenuButton" type="Button" parent="ScreenMargin/ScreenLayout/HeaderRow/TopRight/ButtonsRow"]
+custom_minimum_size = Vector2(130, 50)
+layout_mode = 2
+text = "Main Menu"
+
+[node name="GraphFrame" type="Panel" parent="ScreenMargin/ScreenLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_graph_frame")
+
+[node name="GraphScroll" type="ScrollContainer" parent="ScreenMargin/ScreenLayout/GraphFrame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="UpgradeGrid" type="GridContainer" parent="ScreenMargin/ScreenLayout/GraphFrame/GraphScroll"]
+custom_minimum_size = Vector2(928, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 4
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 16

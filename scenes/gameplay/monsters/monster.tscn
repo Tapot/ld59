@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://1yap0r6rcpm0"]
 
-[ext_resource type="Script" uid="uid://gkwqxoca1w5j" path="res://scripts/monster.gd" id="1_kofnl"]
+[ext_resource type="Script" path="res://scripts/gameplay/monsters/monster.gd" id="1_kofnl"]
 [ext_resource type="Texture2D" uid="uid://bwjo61mfxng88" path="res://icon.svg" id="2_5ir18"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_h6n5d"]

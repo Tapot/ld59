@@ -3,6 +3,8 @@ extends Area2D
 
 
 signal died(monster: Monster)
+signal killed(monster: Monster)
+signal expired(monster: Monster)
 
 enum MonsterState {
 	ALIVE,
@@ -32,11 +34,12 @@ enum MonsterState {
 var hp: float = 0.0
 var max_lifetime: float = 0.0
 var remaining_lifetime: float = 0.0
-var spawn_position: Vector2
-var walk_target: Vector2
+var spawn_position: Vector2 = Vector2.ZERO
+var walk_target: Vector2 = Vector2.ZERO
 var is_walking: bool = false
 var _lifetime_slow_count: int = 0
 var _lifetime_slow_scale: float = 1.0
+var _motion_lock_count: int = 0
 var _state: MonsterState = MonsterState.ALIVE
 var _despawn_elapsed: float = 0.0
 var _despawn_duration: float = 0.0
@@ -68,6 +71,9 @@ func _physics_process(delta: float) -> void:
 	if _update_lifetime(delta):
 		return
 
+	if _motion_lock_count > 0:
+		return
+
 	if not is_walking:
 		return
 
@@ -94,6 +100,9 @@ func take_damage(amount: float) -> void:
 
 
 func _on_walk_timer_timeout() -> void:
+	if _motion_lock_count > 0:
+		return
+
 	if is_walking:
 		is_walking = false
 		_schedule_idle()
@@ -142,6 +151,27 @@ func pop_lifetime_slow() -> void:
 		_lifetime_slow_scale = 1.0
 
 
+func push_motion_lock() -> void:
+	if _state != MonsterState.ALIVE:
+		return
+
+	_motion_lock_count += 1
+	is_walking = false
+	walk_timer.stop()
+
+
+func pop_motion_lock() -> void:
+	_motion_lock_count = maxi(0, _motion_lock_count - 1)
+	if _motion_lock_count > 0:
+		return
+
+	if _state != MonsterState.ALIVE:
+		return
+
+	if walk_timer.is_stopped():
+		_schedule_idle()
+
+
 func _get_lifetime_tick_scale() -> float:
 	if _lifetime_slow_count <= 0:
 		return 1.0
@@ -154,6 +184,7 @@ func _start_expire_sequence() -> void:
 		return
 
 	_begin_despawn(MonsterState.EXPIRING, expire_fade_duration)
+	expired.emit(self)
 	sprite.visible = true
 	death_marker.visible = false
 	sprite.modulate.a = 1.0
@@ -164,6 +195,7 @@ func _start_death_sequence() -> void:
 		return
 
 	_begin_despawn(MonsterState.DYING, death_marker_duration)
+	killed.emit(self)
 	sprite.visible = false
 	death_marker.visible = true
 	death_marker.modulate.a = 1.0
@@ -202,8 +234,8 @@ func _update_despawn_visuals(delta: float) -> void:
 
 
 func _disable_attack_targeting() -> void:
-	monitorable = false
-	collision_shape.disabled = true
+	set_deferred("monitorable", false)
+	collision_shape.set_deferred("disabled", true)
 
 
 func _pick_walk_direction() -> Vector2:

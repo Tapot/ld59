@@ -1,0 +1,26 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/combat/monster_projectile.gd" id="1_gm5n7"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_rga56"]
+radius = 6.0
+
+[node name="MonsterProjectile" type="Area2D"]
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("1_gm5n7")
+
+[node name="Trail" type="Line2D" parent="."]
+width = 4.0
+default_color = Color(1, 0.72, 0.2, 1)
+antialiased = true
+begin_cap_mode = 2
+end_cap_mode = 2
+points = PackedVector2Array(-12, 0, 12, 0)
+
+[node name="Core" type="Polygon2D" parent="."]
+color = Color(1, 0.9, 0.42, 1)
+polygon = PackedVector2Array(-3, -3, 6, 0, -3, 3)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_rga56")
