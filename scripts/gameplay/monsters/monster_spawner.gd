@@ -9,7 +9,6 @@ signal all_waves_completed()
 
 @export var monster_scene: PackedScene
 @export var monster_container_path: NodePath
-@export var monsters: Array[Monster] = []
 @export var waves: Array[int] = [10, 20, 35]
 @export var time_between_waves: Array[float] = [0.0, 10.3]
 @export var spawn_group_sizes: Array[int] = [2, 3, 4]
@@ -24,6 +23,7 @@ signal all_waves_completed()
 var _monster_container: Node2D
 var _current_wave_index: int = -1
 var _remaining_to_spawn_in_wave: int = 0
+var _alive_monsters: Array[Monster] = []
 var _is_waiting_for_next_wave: bool = false
 var _current_wave_delay_duration: float = 0.0
 var _wave_is_active: bool = false
@@ -33,7 +33,7 @@ var _waves_completed: bool = false
 func _ready() -> void:
 	_monster_container = get_node_or_null(monster_container_path) as Node2D
 	if monster_scene == null:
-		monster_scene = load("res://scenes/monster.tscn")
+		monster_scene = load("res://scenes/gameplay/monsters/monster.tscn")
 
 	wave_timer.timeout.connect(_on_wave_timer_timeout)
 	group_timer.timeout.connect(_on_group_timer_timeout)
@@ -106,11 +106,17 @@ func _spawn_next_group() -> void:
 		_on_wave_spawn_completed()
 		return
 
-	var group_size: int = _pick_group_size()
-	for _index in group_size:
-		_spawn_monster()
+	var requested_group_size: int = _pick_group_size()
+	var spawned_count: int = 0
+	for _index: int in requested_group_size:
+		if _spawn_monster():
+			spawned_count += 1
 
-	_remaining_to_spawn_in_wave -= group_size
+	_remaining_to_spawn_in_wave = maxi(0, _remaining_to_spawn_in_wave - spawned_count)
+	if spawned_count <= 0:
+		_finish_all_waves()
+		return
+
 	if _remaining_to_spawn_in_wave > 0:
 		group_timer.start(time_between_groups)
 	else:
@@ -121,31 +127,33 @@ func _on_wave_spawn_completed() -> void:
 	_wave_is_active = false
 	group_timer.stop()
 
-	if monsters.is_empty():
+	if _alive_monsters.is_empty():
 		_schedule_next_wave(0.0)
 		return
 
-	_schedule_next_wave(_get_wave_delay(_current_wave_index + 1))
+	_is_waiting_for_next_wave = false
+	_current_wave_delay_duration = 0.0
 
 
-func _spawn_monster() -> void:
+func _spawn_monster() -> bool:
 	if _waves_completed:
-		return
+		return false
 
 	if _monster_container == null or not is_instance_valid(_monster_container):
-		return
+		return false
 
 	var monster: Monster = monster_scene.instantiate() as Monster
 	if monster == null:
-		return
+		return false
 
 	monster.position = _random_spawn_position()
 	monster.spawn_position = monster.position
 	monster.move_bounds_position = spawn_rect_position
 	monster.move_bounds_size = spawn_rect_size
-	monsters.append(monster)
+	_alive_monsters.append(monster)
 	monster.tree_exited.connect(_on_monster_tree_exited.bind(monster), CONNECT_ONE_SHOT)
 	_add_spawned_monster.call_deferred(monster)
+	return true
 
 
 func _pick_group_size() -> int:
@@ -179,7 +187,7 @@ func _random_spawn_position() -> Vector2:
 
 
 func _on_monster_tree_exited(monster: Monster) -> void:
-	monsters.erase(monster)
+	_alive_monsters.erase(monster)
 
 	if not _can_run_runtime():
 		return
@@ -193,11 +201,10 @@ func _on_monster_tree_exited(monster: Monster) -> void:
 	if _remaining_to_spawn_in_wave > 0:
 		return
 
-	if not monsters.is_empty():
+	if not _alive_monsters.is_empty():
 		return
 
-	if _is_waiting_for_next_wave:
-		_start_next_wave()
+	_schedule_next_wave(0.0)
 
 
 func _finish_all_waves() -> void:

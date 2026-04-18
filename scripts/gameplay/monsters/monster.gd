@@ -32,8 +32,8 @@ enum MonsterState {
 var hp: float = 0.0
 var max_lifetime: float = 0.0
 var remaining_lifetime: float = 0.0
-var spawn_position: Vector2
-var walk_target: Vector2
+var spawn_position: Vector2 = Vector2.ZERO
+var walk_target: Vector2 = Vector2.ZERO
 var is_walking: bool = false
 var _lifetime_slow_count: int = 0
 var _lifetime_slow_scale: float = 1.0

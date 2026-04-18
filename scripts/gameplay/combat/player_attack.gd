@@ -97,13 +97,6 @@ func _apply_attack_radius() -> void:
 	cursor_ring.scale = Vector2(scale_factor, scale_factor)
 
 
-func _clamp_to_attack_bounds(target_position: Vector2) -> Vector2:
-	return Vector2(
-		clampf(target_position.x, attack_bounds_position.x, attack_bounds_position.x + attack_bounds_size.x),
-		clampf(target_position.y, attack_bounds_position.y, attack_bounds_position.y + attack_bounds_size.y)
-	)
-
-
 func _clear_targeted_monsters() -> void:
 	var monsters_to_release: Array[Monster] = _targeted_monsters.duplicate()
 	for monster: Monster in monsters_to_release:

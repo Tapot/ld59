@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bpoa7e3383ldj"]
 
-[ext_resource type="Script" path="res://scripts/monster_spawner.gd" id="1_v6g1c"]
+[ext_resource type="Script" path="res://scripts/gameplay/monsters/monster_spawner.gd" id="1_v6g1c"]
 
 [node name="MonsterSpawner" type="Node"]
 script = ExtResource("1_v6g1c")

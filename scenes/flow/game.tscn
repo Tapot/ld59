@@ -1,9 +1,9 @@
 [gd_scene load_steps=6 format=3 uid="uid://c7e1dbxghm7f6"]
 
-[ext_resource type="Script" path="res://scripts/game.gd" id="1_7lgk1"]
-[ext_resource type="PackedScene" path="res://scenes/monster_spawner.tscn" id="2_ortxj"]
-[ext_resource type="PackedScene" path="res://scenes/player_attack.tscn" id="3_0p8uj"]
-[ext_resource type="PackedScene" path="res://scenes/side_panel.tscn" id="4_tac4v"]
+[ext_resource type="Script" path="res://scripts/flow/game.gd" id="1_7lgk1"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/monsters/monster_spawner.tscn" id="2_ortxj"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/combat/player_attack.tscn" id="3_0p8uj"]
+[ext_resource type="PackedScene" path="res://scenes/ui/panels/side_panel.tscn" id="4_tac4v"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_outer_frame"]
 bg_color = Color(0.14, 0.14, 0.14, 1)

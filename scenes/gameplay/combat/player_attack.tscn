@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dapf5s62dvs6b"]
 
-[ext_resource type="Script" path="res://scripts/player_attack.gd" id="1_j4upo"]
+[ext_resource type="Script" path="res://scripts/gameplay/combat/player_attack.gd" id="1_j4upo"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_q1an7"]
 radius = 20.0

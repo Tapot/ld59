@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dmu86ak4hyk1b"]
 
-[ext_resource type="PackedScene" path="res://scenes/wave_ui.tscn" id="1_0wl7k"]
+[ext_resource type="PackedScene" path="res://scenes/ui/widgets/wave_ui.tscn" id="1_0wl7k"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_side_panel"]
 bg_color = Color(0.1, 0.1, 0.1, 1)
