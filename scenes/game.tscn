@@ -1,12 +1,25 @@
-[gd_scene load_steps=5 format=3 uid="uid://c7e1dbxghm7f6"]
+[gd_scene load_steps=6 format=3 uid="uid://c7e1dbxghm7f6"]
 
 [ext_resource type="Script" path="res://scripts/game.gd" id="1_7lgk1"]
 [ext_resource type="PackedScene" path="res://scenes/monster_spawner.tscn" id="2_ortxj"]
 [ext_resource type="PackedScene" path="res://scenes/player_attack.tscn" id="3_0p8uj"]
+[ext_resource type="PackedScene" path="res://scenes/side_panel.tscn" id="4_tac4v"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_rj0d8"]
-font_size = 18
-font_color = Color(1, 1, 1, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_outer_frame"]
+bg_color = Color(0.14, 0.14, 0.14, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.52, 0.52, 0.52, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_playfield"]
+bg_color = Color(0.18, 0.28, 0.16, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.58, 0.58, 0.58, 1)
 
 [node name="Game" type="Control"]
 layout_mode = 3
@@ -24,29 +37,54 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 1)
+color = Color(0.07, 0.07, 0.07, 1)
 
-[node name="World" type="Node2D" parent="."]
+[node name="OuterFrame" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+offset_left = 28.0
+offset_top = 28.0
+offset_right = -28.0
+offset_bottom = -28.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_outer_frame")
 
-[node name="Monsters" type="Node2D" parent="World"]
+[node name="PlayfieldFrame" type="Panel" parent="OuterFrame"]
+layout_mode = 1
+anchors_preset = 15
+offset_left = 18.0
+offset_top = 18.0
+offset_right = -280.0
+offset_bottom = -18.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_playfield")
 
-[node name="MonsterSpawner" parent="World" instance=ExtResource("2_ortxj")]
+[node name="World" type="Node2D" parent="OuterFrame/PlayfieldFrame"]
+position = Vector2(4, 4)
+
+[node name="Monsters" type="Node2D" parent="OuterFrame/PlayfieldFrame/World"]
+
+[node name="MonsterSpawner" parent="OuterFrame/PlayfieldFrame/World" instance=ExtResource("2_ortxj")]
 monster_container_path = NodePath("../Monsters")
+spawn_rect_position = Vector2(0, 0)
+spawn_rect_size = Vector2(900, 640)
 
-[node name="PlayerAttack" parent="World" instance=ExtResource("3_0p8uj")]
+[node name="PlayerAttack" parent="OuterFrame/PlayfieldFrame/World" instance=ExtResource("3_0p8uj")]
+attack_bounds_position = Vector2(0, 0)
+attack_bounds_size = Vector2(900, 640)
 
-[node name="WaveLabel" type="Label" parent="."]
-offset_left = 24.0
-offset_top = 20.0
-offset_right = 190.0
-offset_bottom = 48.0
-text = "Wave 0"
-label_settings = SubResource("LabelSettings_rj0d8")
-
-[node name="NextWaveTimerLabel" type="Label" parent="."]
-offset_left = 24.0
-offset_top = 52.0
-offset_right = 260.0
-offset_bottom = 80.0
-text = "Next wave in: 0.0"
-label_settings = SubResource("LabelSettings_rj0d8")
+[node name="SidePanel" parent="OuterFrame" instance=ExtResource("4_tac4v")]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -312.0
+offset_right = -18.0
+offset_bottom = 312.0
+grow_horizontal = 0
+grow_vertical = 2
