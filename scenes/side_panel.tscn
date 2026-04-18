@@ -1,0 +1,92 @@
+[gd_scene format=3 uid="uid://dmu86ak4hyk1b"]
+
+[ext_resource type="PackedScene" path="res://scenes/wave_ui.tscn" id="1_0wl7k"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_side_panel"]
+bg_color = Color(0.1, 0.1, 0.1, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.35, 0.35, 0.35, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_skill_button"]
+bg_color = Color(0.16, 0.16, 0.16, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.38, 0.38, 0.38, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="SidePanel" type="Panel"]
+custom_minimum_size = Vector2(232, 624)
+theme_override_styles/panel = SubResource("StyleBoxFlat_side_panel")
+
+[node name="SidePanelMargin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 14
+
+[node name="SidePanelContent" type="VBoxContainer" parent="SidePanelMargin"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="WaveUi" parent="SidePanelMargin/SidePanelContent" instance=ExtResource("1_0wl7k")]
+layout_mode = 2
+
+[node name="Skill1" type="Button" parent="SidePanelMargin/SidePanelContent"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_skill_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_skill_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_skill_button")
+text = "Skill 1"
+
+[node name="Skill2" type="Button" parent="SidePanelMargin/SidePanelContent"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_skill_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_skill_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_skill_button")
+text = "Skill 2"
+
+[node name="Skill3" type="Button" parent="SidePanelMargin/SidePanelContent"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_skill_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_skill_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_skill_button")
+text = "Skill 3"
+
+[node name="Skill4" type="Button" parent="SidePanelMargin/SidePanelContent"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_skill_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_skill_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_skill_button")
+text = "Skill 4"
+
+[node name="Spacer" type="Control" parent="SidePanelMargin/SidePanelContent"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ExitButton" type="Button" parent="SidePanelMargin/SidePanelContent"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_skill_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_skill_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_skill_button")
+text = "Exit"

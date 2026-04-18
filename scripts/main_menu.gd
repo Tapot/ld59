@@ -1,7 +1,7 @@
 extends Control
 
 
-const GAME_SCENE_PATH := "res://scenes/game.tscn"
+const GAME_SCENE_PATH: String = "res://scenes/game.tscn"
 
 
 func _ready() -> void:

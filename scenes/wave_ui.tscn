@@ -1,0 +1,81 @@
+[gd_scene format=3 uid="uid://bp7oj4u8vvw1j"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_wave_title"]
+font_size = 30
+font_color = Color(1, 1, 1, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_wave_name"]
+font_size = 20
+font_color = Color(0.75, 0.75, 0.75, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_small"]
+font_size = 18
+font_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wave_progress_track"]
+bg_color = Color(0.16, 0.16, 0.16, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.34, 0.34, 0.34, 1)
+
+[node name="WaveUi" type="VBoxContainer"]
+theme_override_constants/separation = 10
+
+[node name="WaveLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Waves"
+label_settings = SubResource("LabelSettings_wave_title")
+
+[node name="WaveTrackRow" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(0, 216)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="WaveNames" type="VBoxContainer" parent="WaveTrackRow"]
+custom_minimum_size = Vector2(120, 216)
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Wave1Label" type="Label" parent="WaveTrackRow/WaveNames"]
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+text = "Wave 1"
+vertical_alignment = 1
+label_settings = SubResource("LabelSettings_wave_name")
+
+[node name="Wave2Label" type="Label" parent="WaveTrackRow/WaveNames"]
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+text = "Wave 2"
+vertical_alignment = 1
+label_settings = SubResource("LabelSettings_wave_name")
+
+[node name="Wave3Label" type="Label" parent="WaveTrackRow/WaveNames"]
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+text = "Wave 3"
+vertical_alignment = 1
+label_settings = SubResource("LabelSettings_wave_name")
+
+[node name="WaveProgressTrack" type="Panel" parent="WaveTrackRow"]
+custom_minimum_size = Vector2(30, 216)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_wave_progress_track")
+
+[node name="WaveProgressFill" type="ColorRect" parent="WaveTrackRow/WaveProgressTrack"]
+layout_mode = 1
+anchors_preset = 0
+anchor_right = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = 4.0
+grow_horizontal = 2
+color = Color(0.2, 0.55, 1, 1)
+
+[node name="KillsLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Kills: 0"
+label_settings = SubResource("LabelSettings_small")

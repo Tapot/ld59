@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://dapf5s62dvs6b"]
+
+[ext_resource type="Script" path="res://scripts/player_attack.gd" id="1_j4upo"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_q1an7"]
+radius = 20.0
+
+[sub_resource type="Gradient" id="Gradient_d12ln"]
+colors = PackedColorArray(0.2, 0.8, 1, 0.18, 0.2, 0.8, 1, 0.18)
+
+[node name="PlayerAttack" type="Area2D"]
+collision_layer = 4
+collision_mask = 2
+script = ExtResource("1_j4upo")
+
+[node name="AttackRange" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_q1an7")
+
+[node name="CursorRing" type="Line2D" parent="."]
+width = 2.0
+default_color = Color(0.35, 0.9, 1, 0.95)
+closed = true
+points = PackedVector2Array(20, 0, 18.4776, 7.65367, 14.1421, 14.1421, 7.65367, 18.4776, 0, 20, -7.65367, 18.4776, -14.1421, 14.1421, -18.4776, 7.65367, -20, 0, -18.4776, -7.65367, -14.1421, -14.1421, -7.65367, -18.4776, 0, -20, 7.65367, -18.4776, 14.1421, -14.1421, 18.4776, -7.65367)
