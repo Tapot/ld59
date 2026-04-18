@@ -2,9 +2,9 @@
 [LD59 Theme: Signal](https://ldjam.com/events/ludum-dare/59)
 
 # Credits
-Walrushere
-Alex (RndD)
-Tapot
+- Walrushere
+- Alex (RndD)
+- Tapot
 
 # Game description
 Incremental game
