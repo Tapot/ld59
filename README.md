@@ -6,7 +6,7 @@ Walrushere
 Alex (RndD)
 Tapot
 
-#Game description
+# Game description
 Incremental game
 Summon and kill monsters to decipher their language
 
