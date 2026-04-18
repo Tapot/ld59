@@ -1,0 +1,57 @@
+[gd_scene load_steps=5 format=3 uid="uid://1yap0r6rcpm0"]
+
+[ext_resource type="Script" uid="uid://gkwqxoca1w5j" path="res://scripts/monster.gd" id="1_kofnl"]
+[ext_resource type="Texture2D" uid="uid://bwjo61mfxng88" path="res://icon.svg" id="2_5ir18"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_h6n5d"]
+radius = 26.019224
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lifetime_fill"]
+bg_color = Color(0.2, 0.55, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill"]
+bg_color = Color(0.95, 0.2, 0.2, 1)
+
+[node name="Monster" type="Area2D" unique_id=496952677]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("1_kofnl")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2054666896]
+scale = Vector2(0.32, 0.32)
+texture = ExtResource("2_5ir18")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1397183981]
+shape = SubResource("CircleShape2D_h6n5d")
+
+[node name="HpBar" type="ProgressBar" parent="." unique_id=1834590936]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -34.0
+offset_top = 36.0
+offset_right = 34.0
+offset_bottom = 52.0
+value = 100.0
+show_percentage = false
+visible = false
+theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
+
+[node name="LifetimeBar" type="ProgressBar" parent="." unique_id=245917001]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -34.0
+offset_top = -64.0
+offset_right = 34.0
+offset_bottom = -48.0
+value = 100.0
+show_percentage = false
+theme_override_styles/fill = SubResource("StyleBoxFlat_lifetime_fill")
+
+[node name="WalkTimer" type="Timer" parent="." unique_id=301620003]
+one_shot = true

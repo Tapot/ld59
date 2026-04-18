@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://hev5get3cdch"]
+[gd_scene format=3 uid="uid://hev5get3cdch"]
 
-[ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_m6xgh"]
+[ext_resource type="Script" uid="uid://e7tfpn5m1xb8" path="res://scripts/main_menu.gd" id="1_m6xgh"]
 
-[node name="Main" type="Control"]
+[node name="Main" type="Control" unique_id=1362988444]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,10 +11,9 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_m6xgh")
 
-[node name="StartButton" type="Button" parent="."]
+[node name="StartButton" type="Button" parent="." unique_id=1103102465]
 custom_minimum_size = Vector2(220, 72)
-layout_mode = 2
-anchors_preset = 8
+layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5

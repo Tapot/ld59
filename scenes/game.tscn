@@ -1,4 +1,12 @@
-[gd_scene format=3 uid="uid://c7e1dbxghm7f6"]
+[gd_scene load_steps=5 format=3 uid="uid://c7e1dbxghm7f6"]
+
+[ext_resource type="Script" path="res://scripts/game.gd" id="1_7lgk1"]
+[ext_resource type="PackedScene" path="res://scenes/monster_spawner.tscn" id="2_ortxj"]
+[ext_resource type="PackedScene" path="res://scenes/player_attack.tscn" id="3_0p8uj"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_rj0d8"]
+font_size = 18
+font_color = Color(1, 1, 1, 1)
 
 [node name="Game" type="Control"]
 layout_mode = 3
@@ -7,6 +15,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_7lgk1")
 
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
@@ -16,3 +25,28 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="Monsters" type="Node2D" parent="World"]
+
+[node name="MonsterSpawner" parent="World" instance=ExtResource("2_ortxj")]
+monster_container_path = NodePath("../Monsters")
+
+[node name="PlayerAttack" parent="World" instance=ExtResource("3_0p8uj")]
+
+[node name="WaveLabel" type="Label" parent="."]
+offset_left = 24.0
+offset_top = 20.0
+offset_right = 190.0
+offset_bottom = 48.0
+text = "Wave 0"
+label_settings = SubResource("LabelSettings_rj0d8")
+
+[node name="NextWaveTimerLabel" type="Label" parent="."]
+offset_left = 24.0
+offset_top = 52.0
+offset_right = 260.0
+offset_bottom = 80.0
+text = "Next wave in: 0.0"
+label_settings = SubResource("LabelSettings_rj0d8")
