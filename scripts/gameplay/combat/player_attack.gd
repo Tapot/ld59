@@ -5,6 +5,7 @@ extends Area2D
 @export var attack_radius: float = 20.0
 @export var damage_per_second: float = 100.0
 @export_range(0.05, 1.0, 0.05) var lifetime_slow_scale: float = 0.33333334
+@export var stasis_field_enabled: bool = false
 @export var attack_bounds_position: Vector2 = Vector2.ZERO
 @export var attack_bounds_size: Vector2 = Vector2(1280.0, 720.0)
 
@@ -16,7 +17,7 @@ var _is_active_in_bounds: bool = false
 
 
 func _ready() -> void:
-	_apply_attack_radius()
+	refresh_runtime_configuration()
 	area_entered.connect(_on_area_entered)
 	area_exited.connect(_on_area_exited)
 
@@ -61,6 +62,8 @@ func _on_area_entered(area: Area2D) -> void:
 
 	_targeted_monsters.append(monster)
 	monster.push_lifetime_slow(lifetime_slow_scale)
+	if stasis_field_enabled:
+		monster.push_motion_lock()
 	var tree_exited_callable: Callable = _on_monster_tree_exited.bind(monster)
 	if not monster.tree_exited.is_connected(tree_exited_callable):
 		monster.tree_exited.connect(tree_exited_callable, CONNECT_ONE_SHOT)
@@ -85,9 +88,11 @@ func _release_monster(monster: Monster) -> void:
 	_targeted_monsters.erase(monster)
 	if is_instance_valid(monster):
 		monster.pop_lifetime_slow()
+		if stasis_field_enabled:
+			monster.pop_motion_lock()
 
 
-func _apply_attack_radius() -> void:
+func refresh_runtime_configuration() -> void:
 	var circle_shape: CircleShape2D = attack_range.shape as CircleShape2D
 	if circle_shape != null:
 		circle_shape.radius = attack_radius
@@ -95,6 +100,10 @@ func _apply_attack_radius() -> void:
 	var base_radius: float = 20.0
 	var scale_factor: float = attack_radius / base_radius
 	cursor_ring.scale = Vector2(scale_factor, scale_factor)
+
+
+func is_targeting_monster(monster: Monster) -> bool:
+	return _targeted_monsters.has(monster)
 
 
 func _clear_targeted_monsters() -> void:

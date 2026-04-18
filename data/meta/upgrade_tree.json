@@ -1,0 +1,241 @@
+[
+  {
+    "id": "signal_primer",
+    "title": "Signal Primer",
+    "description": "Opens the tree and improves basic rune collection.",
+    "icon": "res://icon.svg",
+    "ui_pos": [580, 70],
+    "parents": [],
+    "max_level": 3,
+    "base_cost": 4,
+    "cost_growth": 1.5,
+    "effects": [
+      { "stat": "attack_radius", "per_level": 6.0 },
+      { "stat": "runes_per_kill_flat", "per_level": 0.34 }
+    ]
+  },
+  {
+    "id": "wide_signal",
+    "title": "Wide Signal",
+    "description": "Expands the active circle.",
+    "icon": "res://icon.svg",
+    "ui_pos": [130, 245],
+    "parents": ["signal_primer"],
+    "max_level": 5,
+    "base_cost": 5,
+    "cost_growth": 1.45,
+    "effects": [
+      { "stat": "attack_radius", "per_level": 10.0 }
+    ]
+  },
+  {
+    "id": "focused_signal",
+    "title": "Focused Signal",
+    "description": "Improves continuous damage.",
+    "icon": "res://icon.svg",
+    "ui_pos": [560, 330],
+    "parents": ["signal_primer"],
+    "max_level": 5,
+    "base_cost": 5,
+    "cost_growth": 1.5,
+    "effects": [
+      { "stat": "damage_per_second", "per_level": 20.0 }
+    ]
+  },
+  {
+    "id": "rune_carving",
+    "title": "Rune Carving",
+    "description": "Improves rune yield from every kill.",
+    "icon": "res://icon.svg",
+    "ui_pos": [990, 215],
+    "parents": ["signal_primer"],
+    "max_level": 4,
+    "base_cost": 6,
+    "cost_growth": 1.55,
+    "effects": [
+      { "stat": "runes_per_kill_multiplier", "per_level": 0.15 }
+    ]
+  },
+  {
+    "id": "lasting_echo",
+    "title": "Lasting Echo",
+    "description": "Monsters stay in the world longer before fading.",
+    "icon": "res://icon.svg",
+    "ui_pos": [35, 545],
+    "parents": ["wide_signal"],
+    "max_level": 4,
+    "base_cost": 8,
+    "cost_growth": 1.45,
+    "effects": [
+      { "stat": "monster_lifetime_bonus_seconds", "per_level": 0.8 }
+    ]
+  },
+  {
+    "id": "stasis_field",
+    "title": "Stasis Field",
+    "description": "Monsters inside the circle stop moving.",
+    "icon": "res://icon.svg",
+    "ui_pos": [285, 410],
+    "parents": ["wide_signal"],
+    "max_level": 1,
+    "base_cost": 16,
+    "cost_growth": 1.0,
+    "effects": [
+      { "stat": "stasis_field_enabled", "per_level": 1.0 }
+    ]
+  },
+  {
+    "id": "signal_hold",
+    "title": "Signal Hold",
+    "description": "The field slows monster lifetime harder.",
+    "icon": "res://icon.svg",
+    "ui_pos": [425, 590],
+    "parents": ["focused_signal"],
+    "max_level": 4,
+    "base_cost": 8,
+    "cost_growth": 1.5,
+    "effects": [
+      { "stat": "lifetime_slow_strength", "per_level": 0.08 }
+    ]
+  },
+  {
+    "id": "grave_burst",
+    "title": "Grave Burst",
+    "description": "Killed monsters fire one amber shard.",
+    "icon": "res://icon.svg",
+    "ui_pos": [470, 770],
+    "parents": ["signal_hold"],
+    "max_level": 1,
+    "base_cost": 15,
+    "cost_growth": 1.0,
+    "effects": [
+      { "stat": "monster_kill_burst_enabled", "per_level": 1.0 }
+    ]
+  },
+  {
+    "id": "shard_cluster",
+    "title": "Shard Cluster",
+    "description": "Burst skills fire more shards.",
+    "icon": "res://icon.svg",
+    "ui_pos": [650, 770],
+    "parents": ["grave_burst"],
+    "max_level": 4,
+    "base_cost": 12,
+    "cost_growth": 1.5,
+    "effects": [
+      { "stat": "monster_burst_projectile_count_bonus", "per_level": 1.0 }
+    ]
+  },
+  {
+    "id": "piercing_script",
+    "title": "Piercing Script",
+    "description": "Burst shards pass through more monsters.",
+    "icon": "res://icon.svg",
+    "ui_pos": [830, 770],
+    "parents": ["shard_cluster"],
+    "max_level": 3,
+    "base_cost": 14,
+    "cost_growth": 1.55,
+    "effects": [
+      { "stat": "monster_burst_pierce_bonus", "per_level": 1.0 }
+    ]
+  },
+  {
+    "id": "long_arc",
+    "title": "Long Arc",
+    "description": "Burst shards fly farther before collapsing.",
+    "icon": "res://icon.svg",
+    "ui_pos": [1010, 770],
+    "parents": ["piercing_script"],
+    "max_level": 4,
+    "base_cost": 13,
+    "cost_growth": 1.5,
+    "effects": [
+      { "stat": "monster_burst_range_bonus", "per_level": 55.0 }
+    ]
+  },
+  {
+    "id": "wall_ricochet",
+    "title": "Wall Ricochet",
+    "description": "Burst shards bounce off arena walls.",
+    "icon": "res://icon.svg",
+    "ui_pos": [1190, 770],
+    "parents": ["long_arc"],
+    "max_level": 2,
+    "base_cost": 18,
+    "cost_growth": 1.6,
+    "effects": [
+      { "stat": "monster_burst_bounce_bonus", "per_level": 1.0 }
+    ]
+  },
+  {
+    "id": "field_bounty",
+    "title": "Field Bounty",
+    "description": "Kills inside the field grant bonus runes.",
+    "icon": "res://icon.svg",
+    "ui_pos": [730, 435],
+    "parents": ["focused_signal"],
+    "max_level": 1,
+    "base_cost": 14,
+    "cost_growth": 1.0,
+    "effects": [
+      { "stat": "bonus_rune_kill_inside_field", "per_level": 1.0 }
+    ]
+  },
+  {
+    "id": "fade_burst",
+    "title": "Fade Burst",
+    "description": "Expiring monsters also release burst shards.",
+    "icon": "res://icon.svg",
+    "ui_pos": [1230, 590],
+    "parents": ["wall_ricochet"],
+    "max_level": 1,
+    "base_cost": 20,
+    "cost_growth": 1.0,
+    "effects": [
+      { "stat": "monster_expire_burst_enabled", "per_level": 1.0 }
+    ]
+  },
+  {
+    "id": "dense_waves",
+    "title": "Dense Waves",
+    "description": "Each wave contains more monsters.",
+    "icon": "res://icon.svg",
+    "ui_pos": [845, 625],
+    "parents": ["rune_carving"],
+    "max_level": 4,
+    "base_cost": 9,
+    "cost_growth": 1.55,
+    "effects": [
+      { "stat": "extra_monsters_per_wave", "per_level": 2.0 }
+    ]
+  },
+  {
+    "id": "compressed_swarm",
+    "title": "Compressed Swarm",
+    "description": "Spawn groups arrive faster.",
+    "icon": "res://icon.svg",
+    "ui_pos": [1090, 395],
+    "parents": ["rune_carving"],
+    "max_level": 4,
+    "base_cost": 8,
+    "cost_growth": 1.45,
+    "effects": [
+      { "stat": "time_between_groups_factor", "per_level": 0.08 }
+    ]
+  },
+  {
+    "id": "arrival_shrapnel",
+    "title": "Arrival Shrapnel",
+    "description": "Spawned monsters also release burst shards.",
+    "icon": "res://icon.svg",
+    "ui_pos": [1230, 420],
+    "parents": ["fade_burst"],
+    "max_level": 1,
+    "base_cost": 24,
+    "cost_growth": 1.0,
+    "effects": [
+      { "stat": "monster_spawn_burst_enabled", "per_level": 1.0 }
+    ]
+  }
+]

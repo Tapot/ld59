@@ -47,6 +47,7 @@ theme_override_constants/separation = 16
 layout_mode = 2
 
 [node name="Skill1" type="Button" parent="SidePanelMargin/SidePanelContent"]
+visible = false
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_skill_button")
@@ -55,6 +56,7 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_skill_button")
 text = "Skill 1"
 
 [node name="Skill2" type="Button" parent="SidePanelMargin/SidePanelContent"]
+visible = false
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_skill_button")
@@ -63,6 +65,7 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_skill_button")
 text = "Skill 2"
 
 [node name="Skill3" type="Button" parent="SidePanelMargin/SidePanelContent"]
+visible = false
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_skill_button")
@@ -71,6 +74,7 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_skill_button")
 text = "Skill 3"
 
 [node name="Skill4" type="Button" parent="SidePanelMargin/SidePanelContent"]
+visible = false
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_skill_button")
@@ -79,6 +83,7 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_skill_button")
 text = "Skill 4"
 
 [node name="Spacer" type="Control" parent="SidePanelMargin/SidePanelContent"]
+visible = false
 custom_minimum_size = Vector2(0, 12)
 layout_mode = 2
 size_flags_vertical = 3

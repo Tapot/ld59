@@ -66,6 +66,8 @@ position = Vector2(4, 4)
 
 [node name="Monsters" type="Node2D" parent="OuterFrame/PlayfieldFrame/World"]
 
+[node name="Projectiles" type="Node2D" parent="OuterFrame/PlayfieldFrame/World"]
+
 [node name="MonsterSpawner" parent="OuterFrame/PlayfieldFrame/World" instance=ExtResource("2_ortxj")]
 monster_container_path = NodePath("../Monsters")
 spawn_rect_position = Vector2(0, 0)

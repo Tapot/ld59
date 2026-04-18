@@ -79,3 +79,8 @@ color = Color(0.2, 0.55, 1, 1)
 layout_mode = 2
 text = "Kills: 0"
 label_settings = SubResource("LabelSettings_small")
+
+[node name="RunesLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Runes: 0"
+label_settings = SubResource("LabelSettings_small")

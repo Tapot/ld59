@@ -9,13 +9,17 @@ signal all_waves_completed()
 
 @export var monster_scene: PackedScene
 @export var monster_container_path: NodePath
-@export var waves: Array[int] = [10, 20, 35]
-@export var time_between_waves: Array[float] = [0.0, 10.3]
-@export var spawn_group_sizes: Array[int] = [2, 3, 4]
-@export_range(0.0, 1.0, 0.05) var solo_spawn_chance: float = 0.2
-@export_range(0.0, 10.0, 0.1) var time_between_groups: float = 0.7
+@export var waves: Array[int] = [12, 24, 36]
+@export var time_between_waves: Array[float] = [0.0, 4.0, 5.0]
+@export var spawn_group_sizes: Array[int] = [2, 3, 5]
+@export_range(0.0, 1.0, 0.05) var solo_spawn_chance: float = 0.1
+@export_range(0.0, 10.0, 0.05) var time_between_groups: float = 0.5
 @export var spawn_rect_position: Vector2 = Vector2(80.0, 120.0)
 @export var spawn_rect_size: Vector2 = Vector2(1120.0, 520.0)
+@export var monster_base_hp: float = 60.0
+@export_range(0.0, 3.0, 0.05) var monster_hp_growth_per_wave: float = 0.35
+@export var monster_lifetime_bonus_seconds: float = 0.0
+@export var monster_move_speed_multiplier: float = 1.0
 
 @onready var wave_timer: Timer = $WaveTimer
 @onready var group_timer: Timer = $GroupTimer
@@ -28,6 +32,7 @@ var _is_waiting_for_next_wave: bool = false
 var _current_wave_delay_duration: float = 0.0
 var _wave_is_active: bool = false
 var _waves_completed: bool = false
+var _has_started: bool = false
 
 
 func _ready() -> void:
@@ -41,6 +46,15 @@ func _ready() -> void:
 	if waves.is_empty() or _monster_container == null:
 		return
 
+
+func begin_run() -> void:
+	if _has_started:
+		return
+
+	if waves.is_empty() or _monster_container == null:
+		return
+
+	_has_started = true
 	_schedule_next_wave(_get_wave_delay(0))
 
 
@@ -148,8 +162,14 @@ func _spawn_monster() -> bool:
 
 	monster.position = _random_spawn_position()
 	monster.spawn_position = monster.position
+	monster.max_hp = _get_wave_monster_hp(_current_wave_index)
 	monster.move_bounds_position = spawn_rect_position
 	monster.move_bounds_size = spawn_rect_size
+	monster.lifetime_range_seconds = Vector2(
+		maxf(0.5, monster.lifetime_range_seconds.x + monster_lifetime_bonus_seconds),
+		maxf(0.6, monster.lifetime_range_seconds.y + monster_lifetime_bonus_seconds)
+	)
+	monster.move_speed *= maxf(0.2, monster_move_speed_multiplier)
 	_alive_monsters.append(monster)
 	monster.tree_exited.connect(_on_monster_tree_exited.bind(monster), CONNECT_ONE_SHOT)
 	_add_spawned_monster.call_deferred(monster)
@@ -184,6 +204,11 @@ func _random_spawn_position() -> Vector2:
 		randf_range(spawn_rect_position.x, spawn_rect_position.x + spawn_rect_size.x),
 		randf_range(spawn_rect_position.y, spawn_rect_position.y + spawn_rect_size.y)
 	)
+
+
+func _get_wave_monster_hp(wave_index: int) -> float:
+	var safe_wave_index: int = maxi(0, wave_index)
+	return maxf(1.0, monster_base_hp * pow(1.0 + monster_hp_growth_per_wave, safe_wave_index))
 
 
 func _on_monster_tree_exited(monster: Monster) -> void:
@@ -247,11 +272,39 @@ func get_current_wave_number() -> int:
 	return clampi(_current_wave_index + 1, 0, waves.size())
 
 
+func get_current_wave_total_monsters() -> int:
+	if _current_wave_index < 0 or _current_wave_index >= waves.size():
+		return 0
+
+	return maxi(0, waves[_current_wave_index])
+
+
+func get_current_wave_remaining_monsters() -> int:
+	var total_monsters: int = get_current_wave_total_monsters()
+	if total_monsters <= 0:
+		return 0
+
+	return maxi(0, _remaining_to_spawn_in_wave + _alive_monsters.size())
+
+
+func get_current_wave_remaining_progress() -> float:
+	var total_monsters: int = get_current_wave_total_monsters()
+	if total_monsters <= 0:
+		return 0.0
+
+	return clampf(
+		float(get_current_wave_remaining_monsters()) / float(total_monsters),
+		0.0,
+		1.0
+	)
+
+
 func are_waves_completed() -> bool:
 	return _waves_completed
 
 
 func _exit_tree() -> void:
+	_has_started = false
 	_waves_completed = true
 	_wave_is_active = false
 	_is_waiting_for_next_wave = false

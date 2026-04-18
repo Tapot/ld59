@@ -11,4 +11,6 @@ func _ready() -> void:
 
 
 func _on_start_button_pressed() -> void:
+	SessionState.reset_session()
+	SessionState.start_next_run()
 	get_tree().change_scene_to_file(GAME_SCENE_PATH)
