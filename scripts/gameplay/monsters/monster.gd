@@ -16,7 +16,7 @@ enum MonsterState {
 @export var lifetime_range_seconds: Vector2 = Vector2(5.0, 10.0)
 @export var move_speed: float = 210.0
 @export var roam_radius: float = 220.0
-@export var idle_time_range: Vector2 = Vector2(1000, 2.8)
+@export var idle_time_range: Vector2 = Vector2(1.0, 2.8)
 @export var walk_time_range: Vector2 = Vector2(0.2, 0.45)
 @export var expire_fade_duration: float = 0.3
 @export var death_marker_duration: float = 0.5
