@@ -45,13 +45,13 @@ func _rebuild_grid() -> void:
 	var visible_ids: Array[String] = SessionState.get_visible_upgrade_ids()
 	for upgrade_id: String in visible_ids:
 		var definition: Dictionary = SessionState.get_upgrade_definition(upgrade_id)
-		var node_button: Button = UPGRADE_NODE_SCENE.instantiate() as Button
-		if node_button == null:
+		var upgrade_node: UpgradeNode = UPGRADE_NODE_SCENE.instantiate() as UpgradeNode
+		if upgrade_node == null:
 			continue
 
-		upgrade_grid.add_child(node_button)
-		node_button.call("configure", definition, SessionState.get_upgrade_level(upgrade_id))
-		node_button.connect("purchase_requested", Callable(self, "_on_purchase_requested"))
+		upgrade_grid.add_child(upgrade_node)
+		upgrade_node.configure(definition, SessionState.get_upgrade_level(upgrade_id))
+		upgrade_node.purchase_requested.connect(_on_purchase_requested)
 
 
 func _on_purchase_requested(upgrade_id: String) -> void:

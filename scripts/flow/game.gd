@@ -21,14 +21,11 @@ enum BurstTrigger {
 @onready var monster_spawner: MonsterSpawner = $OuterFrame/PlayfieldFrame/World/MonsterSpawner
 @onready var projectile_container: Node2D = $OuterFrame/PlayfieldFrame/World/Projectiles
 @onready var player_attack: PlayerAttack = $OuterFrame/PlayfieldFrame/World/PlayerAttack
-@onready var wave_label: Label = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/WaveUi/WaveLabel
 @onready var wave1_label: Label = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/WaveUi/WaveTrackRow/WaveNames/Wave1Label
 @onready var wave2_label: Label = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/WaveUi/WaveTrackRow/WaveNames/Wave2Label
 @onready var wave3_label: Label = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/WaveUi/WaveTrackRow/WaveNames/Wave3Label
 @onready var wave_progress_track: Panel = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/WaveUi/WaveTrackRow/WaveProgressTrack
-@onready var wave_progress_fill: ColorRect = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/WaveUi/WaveTrackRow/WaveProgressTrack/WaveProgressFill
-@onready var kills_label: Label = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/WaveUi/KillsLabel
-@onready var runes_label: Label = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/WaveUi/RunesLabel
+@onready var wave_progress_ui: WaveUI = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/WaveUi
 @onready var exit_button: Button = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/ExitButton
 
 var _kill_count: int = 0
@@ -44,11 +41,8 @@ func _ready() -> void:
 	monster_spawner.monster_spawned.connect(_on_monster_spawned)
 	monster_spawner.wave_started.connect(_on_wave_started)
 	monster_spawner.all_waves_completed.connect(_on_all_waves_completed)
-	SessionState.runes_changed.connect(_on_runes_changed)
 	wave_progress_track.resized.connect(_refresh_wave_ui)
 	exit_button.pressed.connect(_on_exit_button_pressed)
-	_refresh_runes_ui()
-	_refresh_kills_ui()
 	call_deferred("_refresh_wave_ui")
 	monster_spawner.begin_run()
 
@@ -82,7 +76,6 @@ func _on_all_waves_completed() -> void:
 func _on_monster_killed(monster: Monster) -> void:
 	_kill_count += 1
 	SessionState.add_runes(SessionState.get_runes_for_monster_kill(player_attack.is_targeting_monster(monster)))
-	_refresh_kills_ui()
 	_spawn_monster_burst(monster, BurstTrigger.KILL)
 
 
@@ -107,23 +100,9 @@ func _refresh_wave_ui() -> void:
 	_apply_wave_progress(progress_value, current_wave_number, total_waves)
 
 
-func _refresh_kills_ui() -> void:
-	kills_label.text = "Kills: %d" % _kill_count
-
-
-func _refresh_runes_ui() -> void:
-	runes_label.text = "Runes: %d" % SessionState.get_runes()
-
-
 func _apply_wave_progress(progress_value: float, current_wave_number: int, total_waves: int) -> void:
 	var clamped_progress: float = clampf(progress_value, 0.0, 1.0)
-	var track_height: float = wave_progress_track.size.y - 8.0
-	var fill_height: float = track_height * clamped_progress
-	var top_offset: float = 4.0
-	wave_progress_fill.offset_top = top_offset
-	wave_progress_fill.offset_bottom = top_offset + fill_height
-	wave_progress_fill.color = _get_wave_progress_color(current_wave_number)
-	wave_label.visible = total_waves > 0
+	wave_progress_ui.set_progress(clamped_progress, 1.0)
 
 	for index: int in _wave_labels.size():
 		var label: Label = _wave_labels[index]
@@ -161,10 +140,6 @@ func _apply_meta_to_run() -> void:
 	monster_spawner.time_between_groups = SessionState.get_time_between_groups(monster_spawner.time_between_groups)
 	monster_spawner.monster_lifetime_bonus_seconds = SessionState.get_monster_lifetime_bonus_seconds()
 	monster_spawner.monster_move_speed_multiplier = SessionState.get_monster_move_speed_multiplier()
-
-
-func _on_runes_changed(_total_runes: int) -> void:
-	_refresh_runes_ui()
 
 
 func _maybe_finish_run_naturally() -> void:
@@ -325,9 +300,19 @@ func _spawn_burst_projectile(
 		projectile_bounces,
 		projectile_tint,
 		source_monster,
-		monster_spawner.spawn_rect_position,
-		monster_spawner.spawn_rect_size
 	)
+	Callable(self, "_add_burst_projectile_to_container").call_deferred(projectile)
+
+
+func _add_burst_projectile_to_container(projectile: MonsterProjectile) -> void:
+	if projectile == null:
+		return
+
+	if projectile_container == null or not is_instance_valid(projectile_container):
+		if is_instance_valid(projectile):
+			projectile.queue_free()
+		return
+
 	projectile_container.add_child(projectile)
 
 

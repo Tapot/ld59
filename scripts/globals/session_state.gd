@@ -3,9 +3,6 @@ extends Node
 
 signal runes_changed(total_runes: int)
 signal upgrade_purchased(upgrade_id: String, new_level: int)
-signal session_reset()
-signal run_started(run_number: int)
-signal run_finished(run_number: int, kills: int, natural_end: bool)
 
 
 const UPGRADE_TREE_PATH: String = "res://data/meta/upgrade_tree.json"
@@ -25,7 +22,7 @@ func _ready() -> void:
 
 
 func reset_session() -> void:
-	_runes = 0
+	_runes = Globals.INITIAL_RUNES
 	_run_number = 0
 	_last_run_kills = 0
 	_last_run_was_natural_end = false
@@ -34,19 +31,16 @@ func reset_session() -> void:
 	for upgrade_id: String in _upgrade_ids:
 		_upgrade_levels[upgrade_id] = 0
 
-	session_reset.emit()
 	runes_changed.emit(_runes)
 
 
 func start_next_run() -> void:
 	_run_number += 1
-	run_started.emit(_run_number)
 
 
 func finish_current_run(kills: int, natural_end: bool) -> void:
 	_last_run_kills = maxi(0, kills)
 	_last_run_was_natural_end = natural_end
-	run_finished.emit(_run_number, _last_run_kills, natural_end)
 
 
 func add_runes(amount: int) -> void:
@@ -73,23 +67,12 @@ func get_runes() -> int:
 	return _runes
 
 
-func get_run_number() -> int:
-	return _run_number
-
-
 func get_last_run_kills() -> int:
 	return _last_run_kills
 
 
 func was_last_run_natural_end() -> bool:
 	return _last_run_was_natural_end
-
-
-func get_upgrade_ids() -> Array[String]:
-	var result: Array[String] = []
-	for upgrade_id: String in _upgrade_ids:
-		result.append(upgrade_id)
-	return result
 
 
 func get_visible_upgrade_ids() -> Array[String]:
