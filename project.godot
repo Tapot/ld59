@@ -18,7 +18,8 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-SessionState="*res://scripts/session/session_state.gd"
+SessionState="*res://scripts/globals/session_state.gd"
+Globals="*uid://bt8bly46mfeqk"
 
 [display]
 

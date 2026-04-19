@@ -9,13 +9,11 @@ signal all_waves_completed()
 
 @export var monster_scene: PackedScene
 @export var monster_container_path: NodePath
-@export var waves: Array[int] = [12, 24, 36]
+@export var waves: Array[int] = [100, 500, 1000]
 @export var time_between_waves: Array[float] = [0.0, 4.0, 5.0]
 @export var spawn_group_sizes: Array[int] = [2, 3, 5]
 @export_range(0.0, 1.0, 0.05) var solo_spawn_chance: float = 0.1
 @export_range(0.0, 10.0, 0.05) var time_between_groups: float = 0.5
-@export var spawn_rect_position: Vector2 = Vector2(80.0, 120.0)
-@export var spawn_rect_size: Vector2 = Vector2(1120.0, 520.0)
 @export var monster_base_hp: float = 60.0
 @export_range(0.0, 3.0, 0.05) var monster_hp_growth_per_wave: float = 0.35
 @export var monster_lifetime_bonus_seconds: float = 0.0
@@ -28,8 +26,6 @@ var _monster_container: Node2D
 var _current_wave_index: int = -1
 var _remaining_to_spawn_in_wave: int = 0
 var _alive_monsters: Array[Monster] = []
-var _is_waiting_for_next_wave: bool = false
-var _current_wave_delay_duration: float = 0.0
 var _wave_is_active: bool = false
 var _waves_completed: bool = false
 var _has_started: bool = false
@@ -42,9 +38,6 @@ func _ready() -> void:
 
 	wave_timer.timeout.connect(_on_wave_timer_timeout)
 	group_timer.timeout.connect(_on_group_timer_timeout)
-
-	if waves.is_empty() or _monster_container == null:
-		return
 
 
 func begin_run() -> void:
@@ -77,13 +70,12 @@ func _schedule_next_wave(delay: float) -> void:
 	group_timer.stop()
 	wave_timer.stop()
 
-	_current_wave_delay_duration = maxf(0.0, delay)
-	if _current_wave_delay_duration <= 0.0:
+	var next_wave_delay: float = maxf(0.0, delay)
+	if next_wave_delay <= 0.0:
 		_start_next_wave()
 		return
 
-	_is_waiting_for_next_wave = true
-	wave_timer.start(_current_wave_delay_duration)
+	wave_timer.start(next_wave_delay)
 
 
 func _start_next_wave() -> void:
@@ -95,8 +87,6 @@ func _start_next_wave() -> void:
 
 	wave_timer.stop()
 	group_timer.stop()
-	_is_waiting_for_next_wave = false
-	_current_wave_delay_duration = 0.0
 	_wave_is_active = true
 
 	_current_wave_index += 1
@@ -145,9 +135,6 @@ func _on_wave_spawn_completed() -> void:
 		_schedule_next_wave(0.0)
 		return
 
-	_is_waiting_for_next_wave = false
-	_current_wave_delay_duration = 0.0
-
 
 func _spawn_monster() -> bool:
 	if _waves_completed:
@@ -160,11 +147,9 @@ func _spawn_monster() -> bool:
 	if monster == null:
 		return false
 
-	monster.position = _random_spawn_position()
-	monster.spawn_position = monster.position
+	monster.global_position = _random_spawn_position()
+	monster.spawn_position = monster.global_position
 	monster.max_hp = _get_wave_monster_hp(_current_wave_index)
-	monster.move_bounds_position = spawn_rect_position
-	monster.move_bounds_size = spawn_rect_size
 	monster.lifetime_range_seconds = Vector2(
 		maxf(0.5, monster.lifetime_range_seconds.x + monster_lifetime_bonus_seconds),
 		maxf(0.6, monster.lifetime_range_seconds.y + monster_lifetime_bonus_seconds)
@@ -201,8 +186,8 @@ func _get_wave_delay(wave_index: int) -> float:
 
 func _random_spawn_position() -> Vector2:
 	return Vector2(
-		randf_range(spawn_rect_position.x, spawn_rect_position.x + spawn_rect_size.x),
-		randf_range(spawn_rect_position.y, spawn_rect_position.y + spawn_rect_size.y)
+		randf_range(Globals.MONSTERS_FIELD_MIN.x, Globals.MONSTERS_FIELD_MAX.x),
+		randf_range(Globals.MONSTERS_FIELD_MIN.y, Globals.MONSTERS_FIELD_MAX.y)
 	)
 
 
@@ -238,8 +223,6 @@ func _finish_all_waves() -> void:
 
 	_waves_completed = true
 	_wave_is_active = false
-	_is_waiting_for_next_wave = false
-	_current_wave_delay_duration = 0.0
 	wave_timer.stop()
 	group_timer.stop()
 	all_waves_completed.emit()
@@ -247,21 +230,6 @@ func _finish_all_waves() -> void:
 
 func has_more_waves() -> bool:
 	return not _waves_completed and _current_wave_index + 1 < waves.size()
-
-
-func is_waiting_for_next_wave() -> bool:
-	return _is_waiting_for_next_wave and not wave_timer.is_stopped()
-
-
-func get_time_until_next_wave() -> float:
-	if not is_waiting_for_next_wave():
-		return 0.0
-
-	return maxf(0.0, wave_timer.time_left)
-
-
-func get_current_wave_delay_duration() -> float:
-	return _current_wave_delay_duration
 
 
 func get_total_waves() -> int:
@@ -307,7 +275,6 @@ func _exit_tree() -> void:
 	_has_started = false
 	_waves_completed = true
 	_wave_is_active = false
-	_is_waiting_for_next_wave = false
 	wave_timer.stop()
 	group_timer.stop()
 

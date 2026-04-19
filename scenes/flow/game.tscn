@@ -1,9 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://c7e1dbxghm7f6"]
+[gd_scene format=3 uid="uid://c7e1dbxghm7f6"]
 
-[ext_resource type="Script" path="res://scripts/flow/game.gd" id="1_7lgk1"]
-[ext_resource type="PackedScene" path="res://scenes/gameplay/monsters/monster_spawner.tscn" id="2_ortxj"]
-[ext_resource type="PackedScene" path="res://scenes/gameplay/combat/player_attack.tscn" id="3_0p8uj"]
-[ext_resource type="PackedScene" path="res://scenes/ui/panels/side_panel.tscn" id="4_tac4v"]
+[ext_resource type="Script" uid="uid://cove4whc4hohx" path="res://scripts/flow/game.gd" id="1_7lgk1"]
+[ext_resource type="PackedScene" uid="uid://bpoa7e3383ldj" path="res://scenes/gameplay/monsters/monster_spawner.tscn" id="2_ortxj"]
+[ext_resource type="PackedScene" uid="uid://dapf5s62dvs6b" path="res://scenes/gameplay/combat/player_attack.tscn" id="3_0p8uj"]
+[ext_resource type="PackedScene" uid="uid://dmu86ak4hyk1b" path="res://scenes/ui/panels/side_panel.tscn" id="4_tac4v"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_outer_frame"]
 bg_color = Color(0.14, 0.14, 0.14, 1)
@@ -21,7 +21,7 @@ border_width_right = 4
 border_width_bottom = 4
 border_color = Color(0.58, 0.58, 0.58, 1)
 
-[node name="Game" type="Control"]
+[node name="Game" type="Control" unique_id=767049887]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -30,7 +30,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_7lgk1")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=677378294]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -39,9 +39,11 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.07, 0.07, 0.07, 1)
 
-[node name="OuterFrame" type="Panel" parent="."]
+[node name="OuterFrame" type="Panel" parent="." unique_id=828488498]
 layout_mode = 1
 anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 offset_left = 28.0
 offset_top = 28.0
 offset_right = -28.0
@@ -50,36 +52,35 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_outer_frame")
 
-[node name="PlayfieldFrame" type="Panel" parent="OuterFrame"]
+[node name="PlayfieldFrame" type="Panel" parent="OuterFrame" unique_id=1272083735]
 layout_mode = 1
 anchors_preset = 15
-offset_left = 18.0
-offset_top = 18.0
-offset_right = -280.0
-offset_bottom = -18.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -284.0
+offset_bottom = -24.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_playfield")
 
-[node name="World" type="Node2D" parent="OuterFrame/PlayfieldFrame"]
+[node name="World" type="Node2D" parent="OuterFrame/PlayfieldFrame" unique_id=593357151]
 position = Vector2(4, 4)
 
-[node name="Monsters" type="Node2D" parent="OuterFrame/PlayfieldFrame/World"]
+[node name="Monsters" type="Node2D" parent="OuterFrame/PlayfieldFrame/World" unique_id=1801823576]
 
-[node name="Projectiles" type="Node2D" parent="OuterFrame/PlayfieldFrame/World"]
+[node name="Projectiles" type="Node2D" parent="OuterFrame/PlayfieldFrame/World" unique_id=32655536]
 
-[node name="MonsterSpawner" parent="OuterFrame/PlayfieldFrame/World" instance=ExtResource("2_ortxj")]
+[node name="MonsterSpawner" parent="OuterFrame/PlayfieldFrame/World" unique_id=372484657 instance=ExtResource("2_ortxj")]
 monster_container_path = NodePath("../Monsters")
-spawn_rect_position = Vector2(0, 0)
-spawn_rect_size = Vector2(900, 640)
 
-[node name="PlayerAttack" parent="OuterFrame/PlayfieldFrame/World" instance=ExtResource("3_0p8uj")]
-attack_bounds_position = Vector2(0, 0)
+[node name="PlayerAttack" parent="OuterFrame/PlayfieldFrame/World" unique_id=353202781 instance=ExtResource("3_0p8uj")]
 attack_bounds_size = Vector2(900, 640)
 
-[node name="SidePanel" parent="OuterFrame" instance=ExtResource("4_tac4v")]
+[node name="SidePanel" parent="OuterFrame" unique_id=1821927344 instance=ExtResource("4_tac4v")]
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = 6
 anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0

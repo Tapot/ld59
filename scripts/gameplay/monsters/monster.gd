@@ -2,7 +2,6 @@ class_name Monster
 extends Area2D
 
 
-signal died(monster: Monster)
 signal killed(monster: Monster)
 signal expired(monster: Monster)
 
@@ -17,12 +16,10 @@ enum MonsterState {
 @export var lifetime_range_seconds: Vector2 = Vector2(5.0, 10.0)
 @export var move_speed: float = 210.0
 @export var roam_radius: float = 220.0
-@export var idle_time_range: Vector2 = Vector2(1.1, 2.8)
+@export var idle_time_range: Vector2 = Vector2(1.0, 2.8)
 @export var walk_time_range: Vector2 = Vector2(0.2, 0.45)
 @export var expire_fade_duration: float = 0.3
 @export var death_marker_duration: float = 0.5
-@export var move_bounds_position: Vector2 = Vector2.ZERO
-@export var move_bounds_size: Vector2 = Vector2(1280.0, 720.0)
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var death_marker: ColorRect = $DeathMarker
@@ -49,8 +46,9 @@ func _ready() -> void:
 	hp = max_hp
 	max_lifetime = _roll_lifetime()
 	remaining_lifetime = max_lifetime
-	spawn_position = position
-	walk_target = position
+	spawn_position = global_position
+	walk_target = global_position
+	is_walking = false
 	hp_bar.max_value = max_hp
 	hp_bar.value = hp
 	hp_bar.visible = false
@@ -77,14 +75,14 @@ func _physics_process(delta: float) -> void:
 	if not is_walking:
 		return
 
-	var to_target: Vector2 = walk_target - position
+	var to_target: Vector2 = walk_target - global_position
 	if to_target.length() <= move_speed * delta:
-		position = walk_target
+		global_position = walk_target
 		is_walking = false
 		_schedule_idle()
 		return
 
-	position += to_target.normalized() * move_speed * delta
+	global_position += to_target.normalized() * move_speed * delta
 
 
 func take_damage(amount: float) -> void:
@@ -110,7 +108,7 @@ func _on_walk_timer_timeout() -> void:
 
 	var direction: Vector2 = _pick_walk_direction()
 	var distance: float = randf_range(roam_radius * 0.7, roam_radius)
-	var desired_target: Vector2 = position + direction * distance
+	var desired_target: Vector2 = global_position + direction * distance
 	var offset_from_spawn: Vector2 = desired_target - spawn_position
 	if offset_from_spawn.length() > roam_radius:
 		offset_from_spawn = offset_from_spawn.normalized() * roam_radius
@@ -227,9 +225,6 @@ func _update_despawn_visuals(delta: float) -> void:
 	if progress < 1.0:
 		return
 
-	if _state == MonsterState.DYING:
-		died.emit(self)
-
 	queue_free()
 
 
@@ -239,7 +234,7 @@ func _disable_attack_targeting() -> void:
 
 
 func _pick_walk_direction() -> Vector2:
-	var current_offset: Vector2 = position - spawn_position
+	var current_offset: Vector2 = global_position - spawn_position
 	if current_offset.length() > 8.0 and randf() < 0.8:
 		var jitter_angle: float = randf_range(-0.25, 0.25)
 		return current_offset.normalized().rotated(jitter_angle)
@@ -249,6 +244,14 @@ func _pick_walk_direction() -> Vector2:
 
 func _clamp_to_move_bounds(target_position: Vector2) -> Vector2:
 	return Vector2(
-		clampf(target_position.x, move_bounds_position.x, move_bounds_position.x + move_bounds_size.x),
-		clampf(target_position.y, move_bounds_position.y, move_bounds_position.y + move_bounds_size.y)
+		clampf(
+			target_position.x,
+			Globals.MONSTERS_FIELD_MIN.x,
+			Globals.MONSTERS_FIELD_MAX.x
+		),
+		clampf(
+			target_position.y,
+			Globals.MONSTERS_FIELD_MIN.y,
+			Globals.MONSTERS_FIELD_MAX.y
+		)
 	)

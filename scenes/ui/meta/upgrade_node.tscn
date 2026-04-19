@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3 uid="uid://dnicupbermcvm"]
 
-[ext_resource type="Script" path="res://scripts/ui/meta/upgrade_node.gd" id="1_f7s4t"]
+[ext_resource type="Script" uid="uid://cruyh6g8yynn7" path="res://scripts/ui/meta/upgrade_node.gd" id="1_f7s4t"]
+[ext_resource type="Texture2D" uid="uid://bwjo61mfxng88" path="res://icon.svg" id="2_8y3yc"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_node_normal"]
 bg_color = Color(0.12, 0.12, 0.12, 1)
@@ -9,6 +10,18 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.32, 0.32, 0.32, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_node_pressed"]
+bg_color = Color(0.18, 0.22, 0.26, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.62, 1, 1)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
@@ -38,28 +51,16 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_node_pressed"]
-bg_color = Color(0.18, 0.22, 0.26, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.3, 0.62, 1, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-
-[node name="UpgradeNode" type="Button"]
+[node name="UpgradeNode" type="Button" unique_id=1803159965]
 custom_minimum_size = Vector2(220, 146)
 focus_mode = 0
 theme_override_styles/normal = SubResource("StyleBoxFlat_node_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_node_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_node_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_node_hover")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_node_disabled")
 script = ExtResource("1_f7s4t")
 
-[node name="ContentMargin" type="MarginContainer" parent="."]
+[node name="ContentMargin" type="MarginContainer" parent="." unique_id=981542709]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -71,22 +72,24 @@ theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 12
 
-[node name="Content" type="VBoxContainer" parent="ContentMargin"]
+[node name="Content" type="VBoxContainer" parent="ContentMargin" unique_id=96054536]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 10
 
-[node name="TopRow" type="HBoxContainer" parent="ContentMargin/Content"]
+[node name="TopRow" type="HBoxContainer" parent="ContentMargin/Content" unique_id=2011865462]
 layout_mode = 2
-alignment = 1
 theme_override_constants/separation = 10
+alignment = 1
 
-[node name="IconRect" type="TextureRect" parent="ContentMargin/Content/TopRow"]
+[node name="IconRect" type="TextureRect" parent="ContentMargin/Content/TopRow" unique_id=1782425121]
 custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
+texture = ExtResource("2_8y3yc")
+expand_mode = 4
 stretch_mode = 5
 
-[node name="TitleLabel" type="Label" parent="ContentMargin/Content/TopRow"]
+[node name="TitleLabel" type="Label" parent="ContentMargin/Content/TopRow" unique_id=758258348]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -94,18 +97,19 @@ text = "Upgrade"
 vertical_alignment = 1
 autowrap_mode = 3
 
-[node name="AffordDot" type="ColorRect" parent="ContentMargin/Content/TopRow"]
+[node name="AffordDot" type="ColorRect" parent="ContentMargin/Content/TopRow" unique_id=975784473]
+visible = false
 custom_minimum_size = Vector2(12, 12)
 layout_mode = 2
 color = Color(0.9, 0.2, 0.2, 1)
 
-[node name="ProgressBar" type="ProgressBar" parent="ContentMargin/Content"]
+[node name="ProgressBar" type="ProgressBar" parent="ContentMargin/Content" unique_id=484676936]
 custom_minimum_size = Vector2(0, 18)
 layout_mode = 2
-show_percentage = false
 max_value = 5.0
+show_percentage = false
 
-[node name="LevelPriceLabel" type="Label" parent="ContentMargin/Content"]
+[node name="LevelPriceLabel" type="Label" parent="ContentMargin/Content" unique_id=298221606]
 custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 text = "0/5 - 0"

@@ -47,8 +47,6 @@ func setup(
 	projectile_bounces: int,
 	tint: Color,
 	source: Monster,
-	bounds_position: Vector2,
-	bounds_size: Vector2
 ) -> void:
 	position = start_position
 	direction = travel_direction.normalized()
@@ -62,9 +60,9 @@ func setup(
 	remaining_pierces = maxi(0, projectile_pierces)
 	remaining_bounces = maxi(0, projectile_bounces)
 	source_monster = source
-	travel_bounds_position = bounds_position
-	travel_bounds_size = bounds_size
 	_tint = tint
+	travel_bounds_position = Globals.MONSTERS_FIELD_MIN
+	travel_bounds_size = Globals.MONSTERS_FIELD_MAX - Globals.MONSTERS_FIELD_MIN
 	_hit_monster_ids.clear()
 
 	if is_node_ready():
