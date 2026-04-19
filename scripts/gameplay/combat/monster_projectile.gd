@@ -61,6 +61,8 @@ func setup(
 	remaining_bounces = maxi(0, projectile_bounces)
 	source_monster = source
 	_tint = tint
+	travel_bounds_position = Globals.MONSTERS_FIELD_MIN
+	travel_bounds_size = Globals.MONSTERS_FIELD_MAX - Globals.MONSTERS_FIELD_MIN
 	_hit_monster_ids.clear()
 
 	if is_node_ready():
