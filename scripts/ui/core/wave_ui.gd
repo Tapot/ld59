@@ -6,4 +6,6 @@ extends VBoxContainer
 
 
 func set_progress(value: float, max_value: float) -> void:
-	progress_bar.value = value * progress_bar.max_value / max_value
+	var safe_max_value := max(max_value, 0.000001)
+	progress_bar.max_value = safe_max_value
+	progress_bar.value = clamp(value, 0.0, safe_max_value)
