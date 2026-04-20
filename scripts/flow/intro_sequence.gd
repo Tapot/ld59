@@ -4,7 +4,7 @@ extends Control
 const RUNE_SELECTION_SCENE_PATH: String = "res://scenes/flow/upgrades_screen.tscn"
 const TOP_COUNTER_Y: float = 30.0
 
-@onready var headline_label: Label = $CenterContent/HeadlineLabel
+@onready var intro_text_image: TextureRect = $IntroTextImage
 @onready var population_counter: Control = $PopulationCounter
 
 var _phase: int = 0
@@ -54,13 +54,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _update_phase_ui() -> void:
-	match _phase:
-		0:
-			headline_label.text = ""
-		1:
-			headline_label.text = "They are draining us to extinction."
-		_:
-			headline_label.text = ""
+	intro_text_image.visible = _phase == 1
 
 
 func _finish_sequence() -> void:

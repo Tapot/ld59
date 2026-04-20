@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://chxipragxyoep" path="res://scripts/flow/intro_sequence.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://doone2xa8ro2g" path="res://scenes/ui/widgets/volume_controls.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/ui/widgets/population_counter.tscn" id="3"]
+[ext_resource type="Texture2D" uid="uid://ciw2f70uegp8l" path="res://assets/images/intro_text.png" id="4"]
 
 [node name="IntroSequence" type="Control" unique_id=1756480223]
 layout_mode = 3
@@ -22,27 +23,9 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
-[node name="CenterContent" type="VBoxContainer" parent="." unique_id=1727375160]
+[node name="PopulationCounter" parent="." unique_id=357934669 instance=ExtResource("3")]
 layout_mode = 1
 anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -340.0
-offset_top = -170.0
-offset_right = 340.0
-offset_bottom = 70.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 14
-alignment = 1
-
-[node name="HeadlineLabel" type="Label" parent="CenterContent" unique_id=742158151]
-layout_mode = 2
-
-[node name="PopulationCounter" parent="." unique_id=357934669 instance=ExtResource("3")]
-anchors_preset = 0
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -63,3 +46,21 @@ offset_top = 24.0
 offset_right = -24.0
 offset_bottom = 68.0
 grow_horizontal = 0
+
+[node name="IntroTextImage" type="TextureRect" parent="." unique_id=2047604762]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -160.0
+offset_right = 400.0
+offset_bottom = 160.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("4")
+stretch_mode = 3

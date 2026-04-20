@@ -46,6 +46,8 @@ func _ready() -> void:
 	exit_button.pressed.connect(_on_exit_button_pressed)
 	monster_spawner.begin_run()
 	_refresh_objectives_ui()
+	# DEBUG: draw monster field bounds — uncomment to visualize
+	#_add_debug_bounds_rect()
 
 
 func _physics_process(delta: float) -> void:
@@ -80,6 +82,7 @@ func _on_monster_spawned(monster: Monster) -> void:
 	add_monster(monster)
 
 
+
 func _on_all_waves_completed() -> void:
 	_all_waves_completed = true
 	_maybe_finish_run_naturally()
@@ -97,6 +100,7 @@ func _on_monster_killed(monster: Monster) -> void:
 
 func _on_monster_expired(monster: Monster) -> void:
 	SessionState.add_lingering_monster(monster.to_lingering_data())
+
 
 
 func _on_monster_tree_exited(monster: Monster) -> void:
@@ -389,3 +393,13 @@ func _get_burst_target_direction(source_monster: Monster) -> Vector2:
 		closest_direction = offset.normalized()
 
 	return closest_direction
+
+
+# DEBUG: visualize monster field bounds — remove before commit
+func _add_debug_bounds_rect() -> void:
+	var world: Node2D = $OuterFrame/PlayfieldFrame/World
+	var debug_draw: Node2D = Node2D.new()
+	debug_draw.name = "DebugBounds"
+	debug_draw.z_index = 100
+	debug_draw.set_script(preload("res://scripts/debug/debug_bounds_draw.gd"))
+	world.add_child(debug_draw)
