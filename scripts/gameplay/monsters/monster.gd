@@ -21,12 +21,22 @@ enum MonsterState {
 @export var expire_fade_duration: float = 0.3
 @export var death_marker_duration: float = 0.5
 
+# --- Damage FX constants ---
+const FX_BURN_RAMP_SPEED: float = 6.0
+const FX_BURN_COOLDOWN_SPEED: float = 3.0
+const FX_BURN_PULSE_SPEED: float = 8.0
+const FX_BURN_PULSE_AMOUNT: float = 0.25
+const FX_BURN_MAX_WHITE: float = 0.7
+const FX_SHAKE_MAX_OFFSET: float = 1.5
+
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var death_marker: ColorRect = $DeathMarker
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var hp_bar: ProgressBar = $HpBar
 @onready var lifetime_bar: ProgressBar = $LifetimeBar
 @onready var walk_timer: Timer = $WalkTimer
+@onready var death_particles: CPUParticles2D = $DeathParticles
+@onready var burn_scorch: CPUParticles2D = $BurnScorch
 
 var hp: float = 0.0
 var max_lifetime: float = 0.0
@@ -40,6 +50,11 @@ var _motion_lock_count: int = 0
 var _state: MonsterState = MonsterState.ALIVE
 var _despawn_elapsed: float = 0.0
 var _despawn_duration: float = 0.0
+# --- Damage FX state ---
+var _fx_burn_intensity: float = 0.0
+var _fx_damage_timer: float = 0.0
+
+const FX_DAMAGE_WINDOW: float = 0.05
 
 
 func _ready() -> void:
@@ -63,6 +78,8 @@ func _process(delta: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_update_burn_effect(delta)
+
 	if _state != MonsterState.ALIVE:
 		return
 
@@ -89,6 +106,7 @@ func take_damage(amount: float) -> void:
 	if _state != MonsterState.ALIVE:
 		return
 
+	_fx_damage_timer = FX_DAMAGE_WINDOW
 	hp = maxf(0.0, hp - amount)
 	hp_bar.value = hp
 	hp_bar.visible = hp < max_hp
@@ -192,11 +210,13 @@ func _start_death_sequence() -> void:
 	if _state != MonsterState.ALIVE:
 		return
 
-	_begin_despawn(MonsterState.DYING, death_marker_duration)
+	var fx_duration: float = maxf(death_particles.lifetime, burn_scorch.lifetime) + 0.05
+	_begin_despawn(MonsterState.DYING, fx_duration)
 	killed.emit(self)
 	sprite.visible = false
-	death_marker.visible = true
-	death_marker.modulate.a = 1.0
+	death_marker.visible = false
+	death_particles.emitting = true
+	burn_scorch.emitting = true
 
 
 func _begin_despawn(next_state: MonsterState, duration: float) -> void:
@@ -231,6 +251,34 @@ func _update_despawn_visuals(delta: float) -> void:
 func _disable_attack_targeting() -> void:
 	set_deferred("monitorable", false)
 	collision_shape.set_deferred("disabled", true)
+
+
+func _update_burn_effect(delta: float) -> void:
+	if _state != MonsterState.ALIVE:
+		_fx_damage_timer = 0.0
+		return
+
+	if _fx_damage_timer > 0.0:
+		_fx_damage_timer -= delta
+		_fx_burn_intensity = minf(_fx_burn_intensity + FX_BURN_RAMP_SPEED * delta, 1.0)
+	else:
+		_fx_burn_intensity = maxf(_fx_burn_intensity - FX_BURN_COOLDOWN_SPEED * delta, 0.0)
+
+	if _fx_burn_intensity <= 0.0:
+		sprite.self_modulate = Color.WHITE
+		sprite.position = Vector2.ZERO
+		return
+
+	var shake_offset: Vector2 = Vector2(
+		randf_range(-FX_SHAKE_MAX_OFFSET, FX_SHAKE_MAX_OFFSET),
+		randf_range(-FX_SHAKE_MAX_OFFSET, FX_SHAKE_MAX_OFFSET)
+	) * _fx_burn_intensity
+	sprite.position = shake_offset
+
+	var pulse: float = (1.0 + sin(Time.get_ticks_msec() * 0.001 * FX_BURN_PULSE_SPEED * TAU)) * 0.5
+	var white_amount: float = _fx_burn_intensity * (FX_BURN_MAX_WHITE - FX_BURN_PULSE_AMOUNT + pulse * FX_BURN_PULSE_AMOUNT)
+	var c: float = 1.0 + white_amount
+	sprite.self_modulate = Color(c, c, c, 1.0)
 
 
 func _pick_walk_direction() -> Vector2:
