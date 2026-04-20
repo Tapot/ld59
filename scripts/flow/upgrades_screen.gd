@@ -8,6 +8,7 @@ const SLOT_SIZE: Vector2 = Vector2(64, 64)
 const RUNE_ICON_SIZE: Vector2 = Vector2(28, 28)
 const SLOT_ICON_SIZE: Vector2 = Vector2(24, 24)
 const RUNE_ICON_BASE_PATH: String = "res://assets/images/ui/runes_folder/"
+const PAPER_FONT_COLOR: Color = Color.BLACK
 
 @onready var tier_label: Label = $Paper/Margin/Content/Header/TierLabel
 @onready var slot_label: Label = $Paper/Margin/Content/MainArea/RightPanel/SlotLabel
@@ -163,6 +164,7 @@ func _make_slot_panel() -> PanelContainer:
 
 	var name_label: Label = Label.new()
 	name_label.add_theme_font_override("font", UI_FONT)
+	name_label.add_theme_color_override("font_color", PAPER_FONT_COLOR)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	name_label.add_theme_font_size_override("font_size", 9)
@@ -366,6 +368,7 @@ func _rebuild_rune_list() -> void:
 		var title_label: Label = Label.new()
 		title_label.text = str(rune_config.get("title", ""))
 		title_label.add_theme_font_override("font", UI_FONT)
+		title_label.add_theme_color_override("font_color", PAPER_FONT_COLOR)
 		title_label.add_theme_font_size_override("font_size", 22)
 		title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		content.add_child(title_label)
@@ -387,6 +390,7 @@ func _rebuild_rune_list() -> void:
 		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		desc_label.text = str(rune_config.get("description", ""))
 		desc_label.add_theme_font_override("font", UI_FONT)
+		desc_label.add_theme_color_override("font_color", PAPER_FONT_COLOR)
 		desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		body_row.add_child(desc_label)
 
@@ -395,6 +399,7 @@ func _rebuild_rune_list() -> void:
 		var task_label: Label = Label.new()
 		task_label.text = "Task: %s" % str(rune_config.get("task_description", ""))
 		task_label.add_theme_font_override("font", UI_FONT)
+		task_label.add_theme_color_override("font_color", PAPER_FONT_COLOR)
 		task_label.add_theme_font_size_override("font_size", 14)
 		task_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		content.add_child(task_label)
@@ -402,6 +407,7 @@ func _rebuild_rune_list() -> void:
 		var drain_label: Label = Label.new()
 		drain_label.text = "Drain x%.2f" % float(rune_config.get("drain_multiplier", 1.0))
 		drain_label.add_theme_font_override("font", UI_FONT)
+		drain_label.add_theme_color_override("font_color", PAPER_FONT_COLOR)
 		drain_label.add_theme_font_size_override("font_size", 14)
 		drain_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		content.add_child(drain_label)

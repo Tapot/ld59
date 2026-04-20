@@ -82,6 +82,7 @@ theme_override_constants/separation = 4
 visible = false
 layout_mode = 2
 theme_override_fonts/font = ExtResource("7_font")
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 28
 text = "Tier 1 / 10"
 
@@ -99,6 +100,7 @@ theme_override_constants/separation = 8
 visible = false
 layout_mode = 2
 theme_override_fonts/font = ExtResource("7_font")
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 18
 text = "Available Runes"
 
@@ -120,6 +122,7 @@ theme_override_constants/separation = 10
 [node name="SlotsLabel" type="Label" parent="Paper/Margin/Content/MainArea/RightPanel" unique_id=1309140507]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("7_font")
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 18
 text = "Rune Slots"
 horizontal_alignment = 1
@@ -127,6 +130,7 @@ horizontal_alignment = 1
 [node name="SlotLabel" type="Label" parent="Paper/Margin/Content/MainArea/RightPanel" unique_id=1489850933]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("7_font")
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "Slots: 0 / 1"
 horizontal_alignment = 1
 
