@@ -9,11 +9,23 @@ extends Area2D
 @export var attack_bounds_position: Vector2 = Vector2.ZERO
 @export var attack_bounds_size: Vector2 = Vector2(1280.0, 720.0)
 
+const HIT_SOUNDS: Array[AudioStream] = [
+	preload("res://audio/ld59_hit1.mp3"),
+	preload("res://audio/ld59_hit2.mp3"),
+]
+const HIT_PITCH_MIN: float = 0.88
+const HIT_PITCH_MAX: float = 1.12
+const HIT_COOLDOWN: float = 0.15
+const HIT_VOLUME_BASE: float = -14.0
+const HIT_VOLUME_RANGE: float = 1.5
+
 @onready var attack_range: CollisionShape2D = $AttackRange
 @onready var cursor_ring: Line2D = $CursorRing
+@onready var _hit_sfx_pool: Array[AudioStreamPlayer] = [$HitSfx1, $HitSfx2]
 
 var _targeted_monsters: Array[Monster] = []
 var _is_active_in_bounds: bool = false
+var _hit_sfx_cooldown: float = 0.0
 
 
 func _ready() -> void:
@@ -40,16 +52,25 @@ func _process(_delta: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if _hit_sfx_cooldown > 0.0:
+		_hit_sfx_cooldown -= delta
+
 	if not _is_active_in_bounds:
 		return
 
 	var damage_amount: float = damage_per_second * delta
 	var monsters_to_damage: Array[Monster] = _targeted_monsters.duplicate()
+	var dealt_damage: bool = false
 	for monster: Monster in monsters_to_damage:
 		if not is_instance_valid(monster):
 			continue
 
 		monster.take_damage(damage_amount)
+		dealt_damage = true
+
+	if dealt_damage and _hit_sfx_cooldown <= 0.0:
+		_play_hit_sfx()
+		_hit_sfx_cooldown = HIT_COOLDOWN
 
 
 func _on_area_entered(area: Area2D) -> void:
@@ -110,3 +131,13 @@ func _clear_targeted_monsters() -> void:
 	var monsters_to_release: Array[Monster] = _targeted_monsters.duplicate()
 	for monster: Monster in monsters_to_release:
 		_release_monster(monster)
+
+
+func _play_hit_sfx() -> void:
+	for player: AudioStreamPlayer in _hit_sfx_pool:
+		if not player.playing:
+			player.stream = HIT_SOUNDS[randi() % HIT_SOUNDS.size()]
+			player.pitch_scale = randf_range(HIT_PITCH_MIN, HIT_PITCH_MAX)
+			player.volume_db = HIT_VOLUME_BASE + randf_range(-HIT_VOLUME_RANGE, HIT_VOLUME_RANGE)
+			player.play()
+			return

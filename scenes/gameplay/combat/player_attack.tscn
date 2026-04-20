@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://dapf5s62dvs6b"]
 
 [ext_resource type="Script" path="res://scripts/gameplay/combat/player_attack.gd" id="1_j4upo"]
+[ext_resource type="AudioStream" path="res://audio/ld59_hit1.mp3" id="2_hit1"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_q1an7"]
 radius = 20.0
@@ -21,3 +22,11 @@ width = 2.0
 default_color = Color(0.35, 0.9, 1, 0.95)
 closed = true
 points = PackedVector2Array(20, 0, 18.4776, 7.65367, 14.1421, 14.1421, 7.65367, 18.4776, 0, 20, -7.65367, 18.4776, -14.1421, 14.1421, -18.4776, 7.65367, -20, 0, -18.4776, -7.65367, -14.1421, -14.1421, -7.65367, -18.4776, 0, -20, 7.65367, -18.4776, 14.1421, -14.1421, 18.4776, -7.65367)
+
+[node name="HitSfx1" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_hit1")
+volume_db = -14.0
+
+[node name="HitSfx2" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_hit1")
+volume_db = -14.0

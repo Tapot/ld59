@@ -4,12 +4,19 @@ extends Control
 const GAME_SCENE_PATH: String = "res://scenes/flow/game.tscn"
 const MAIN_MENU_SCENE_PATH: String = "res://scenes/flow/main_menu.tscn"
 const UPGRADE_NODE_SCENE: PackedScene = preload("res://scenes/ui/meta/upgrade_node.tscn")
+const POWERUP_SOUNDS: Array[AudioStream] = [
+	preload("res://audio/ld59_powerup1.mp3"),
+	preload("res://audio/ld59_powerup2.mp3"),
+]
+const POWERUP_PITCH_MIN: float = 0.9
+const POWERUP_PITCH_MAX: float = 1.1
 
 @onready var summary_label: Label = $ScreenMargin/ScreenLayout/HeaderRow/TitleColumn/SummaryLabel
 @onready var runes_label: Label = $ScreenMargin/ScreenLayout/HeaderRow/TopRight/RunesLabel
 @onready var spawn_again_button: Button = $ScreenMargin/ScreenLayout/HeaderRow/TopRight/ButtonsRow/SpawnAgainButton
 @onready var main_menu_button: Button = $ScreenMargin/ScreenLayout/HeaderRow/TopRight/ButtonsRow/MainMenuButton
 @onready var upgrade_grid: GridContainer = $ScreenMargin/ScreenLayout/GraphFrame/GraphScroll/UpgradeGrid
+@onready var powerup_sfx: AudioStreamPlayer = $PowerupSfx
 
 
 func _ready() -> void:
@@ -58,7 +65,15 @@ func _on_purchase_requested(upgrade_id: String) -> void:
 	if not SessionState.purchase_upgrade(upgrade_id):
 		return
 
+	Globals.suppress_next_button_click()
+	_play_powerup_sfx()
 	_refresh_screen()
+
+
+func _play_powerup_sfx() -> void:
+	powerup_sfx.stream = POWERUP_SOUNDS[randi() % POWERUP_SOUNDS.size()]
+	powerup_sfx.pitch_scale = randf_range(POWERUP_PITCH_MIN, POWERUP_PITCH_MAX)
+	powerup_sfx.play()
 
 
 func _on_runes_changed(_total_runes: int) -> void:

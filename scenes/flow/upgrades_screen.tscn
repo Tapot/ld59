@@ -1,6 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/flow/upgrades_screen.gd" id="1_u79s1"]
+[ext_resource type="AudioStream" path="res://audio/ld59_powerup1.mp3" id="2_pwrup1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_graph_frame"]
 bg_color = Color(0.1, 0.1, 0.11, 1)
@@ -98,6 +99,10 @@ text = "Main Menu"
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_graph_frame")
+
+[node name="PowerupSfx" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_pwrup1")
+volume_db = -4.0
 
 [node name="GraphScroll" type="ScrollContainer" parent="ScreenMargin/ScreenLayout/GraphFrame"]
 layout_mode = 1

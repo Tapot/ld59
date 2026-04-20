@@ -17,6 +17,17 @@ enum BurstTrigger {
 	KILL
 }
 
+const BUBBLE_SOUNDS: Array[AudioStream] = [
+	preload("res://audio/ld59_bubble1.mp3"),
+	preload("res://audio/ld59_bubble2.mp3"),
+	preload("res://audio/ld59_bubble3.mp3"),
+	preload("res://audio/ld59_bubble4.mp3"),
+]
+const BUBBLE_PITCH_MIN: float = 0.85
+const BUBBLE_PITCH_MAX: float = 1.15
+const BUBBLE_VOLUME_BASE: float = -6.0
+const BUBBLE_VOLUME_RANGE: float = 1.5
+
 
 @onready var monster_spawner: MonsterSpawner = $OuterFrame/PlayfieldFrame/World/MonsterSpawner
 @onready var projectile_container: Node2D = $OuterFrame/PlayfieldFrame/World/Projectiles
@@ -27,6 +38,7 @@ enum BurstTrigger {
 @onready var wave_progress_track: Panel = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/WaveUi/WaveTrackRow/WaveProgressTrack
 @onready var wave_progress_ui: WaveUI = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/WaveUi
 @onready var exit_button: Button = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/ExitButton
+@onready var _bubble_sfx_pool: Array[AudioStreamPlayer] = [$BubbleSfx1, $BubbleSfx2, $BubbleSfx3]
 
 var _kill_count: int = 0
 var _monsters: Array[Monster] = []
@@ -77,6 +89,7 @@ func _on_monster_killed(monster: Monster) -> void:
 	_kill_count += 1
 	SessionState.add_runes(SessionState.get_runes_for_monster_kill(player_attack.is_targeting_monster(monster)))
 	_spawn_monster_burst(monster, BurstTrigger.KILL)
+	_play_bubble_sfx()
 
 
 func _on_monster_expired(monster: Monster) -> void:
@@ -164,6 +177,16 @@ func _on_exit_button_pressed() -> void:
 	_run_transition_started = true
 	SessionState.finish_current_run(_kill_count, false)
 	get_tree().change_scene_to_file(UPGRADES_SCENE_PATH)
+
+
+func _play_bubble_sfx() -> void:
+	for player: AudioStreamPlayer in _bubble_sfx_pool:
+		if not player.playing:
+			player.stream = BUBBLE_SOUNDS[randi() % BUBBLE_SOUNDS.size()]
+			player.pitch_scale = randf_range(BUBBLE_PITCH_MIN, BUBBLE_PITCH_MAX)
+			player.volume_db = BUBBLE_VOLUME_BASE + randf_range(-BUBBLE_VOLUME_RANGE, BUBBLE_VOLUME_RANGE)
+			player.play()
+			return
 
 
 func _spawn_monster_burst(monster: Monster, trigger: int) -> void:

@@ -4,6 +4,11 @@
 [ext_resource type="PackedScene" uid="uid://bpoa7e3383ldj" path="res://scenes/gameplay/monsters/monster_spawner.tscn" id="2_ortxj"]
 [ext_resource type="PackedScene" uid="uid://dapf5s62dvs6b" path="res://scenes/gameplay/combat/player_attack.tscn" id="3_0p8uj"]
 [ext_resource type="PackedScene" uid="uid://dmu86ak4hyk1b" path="res://scenes/ui/panels/side_panel.tscn" id="4_tac4v"]
+[ext_resource type="AudioStream" uid="uid://bb1yhbdgv8cv2" path="res://audio/ld59.mp3" id="5_uokax"]
+[ext_resource type="AudioStream" path="res://audio/ld59_bubble1.mp3" id="6_bub1"]
+[ext_resource type="AudioStream" path="res://audio/ld59_bubble2.mp3" id="7_bub2"]
+[ext_resource type="AudioStream" path="res://audio/ld59_bubble3.mp3" id="8_bub3"]
+[ext_resource type="AudioStream" path="res://audio/ld59_bubble4.mp3" id="9_bub4"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_outer_frame"]
 bg_color = Color(0.14, 0.14, 0.14, 1)
@@ -91,3 +96,15 @@ offset_right = -18.0
 offset_bottom = 312.0
 grow_horizontal = 0
 grow_vertical = 2
+
+[node name="BubbleSfx1" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("6_bub1")
+volume_db = -6.0
+
+[node name="BubbleSfx2" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7_bub2")
+volume_db = -6.0
+
+[node name="BubbleSfx3" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("8_bub3")
+volume_db = -6.0
