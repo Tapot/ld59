@@ -7,10 +7,9 @@ const UI_FONT: FontFile = preload("res://assets/fonts/Jolly_Lodger/JollyLodger-R
 const SLOT_SIZE: Vector2 = Vector2(64, 64)
 const RUNE_ICON_SIZE: Vector2 = Vector2(28, 28)
 const SLOT_ICON_SIZE: Vector2 = Vector2(24, 24)
-const RUNE_PLACEHOLDER_ICON: Texture2D = preload("res://icon.svg")
+const RUNE_PLACEHOLDER_ICON: Texture2D = preload("res://icon.png")
 
 @onready var tier_label: Label = $Paper/Margin/Content/Header/TierLabel
-@onready var summary_label: Label = $Paper/Margin/Content/Header/SummaryLabel
 @onready var slot_label: Label = $Paper/Margin/Content/MainArea/RightPanel/SlotLabel
 @onready var summon_button: Button = $Paper/Margin/Content/MainArea/RightPanel/ButtonsRow/SummonButton
 @onready var main_menu_button: Button = $Paper/Margin/Content/MainArea/RightPanel/ButtonsRow/MainMenuButton
@@ -78,20 +77,7 @@ func _refresh_screen() -> void:
 
 
 func _refresh_header() -> void:
-	var last_summary: Dictionary = SessionState.get_last_run_summary()
-	var summary_text: String = "Choose the runes for this tier and fill every slot to begin the next core run."
-	if SessionState.is_selection_locked():
-		summary_text = "Loadout locked. Finish every selected rune objective to unlock the next tier."
-	elif not last_summary.is_empty():
-		if bool(last_summary.get("tier_completed", false)):
-			summary_text = "Tier %d unlocked. Pick a new loadout." % SessionState.get_current_tier()
-		elif str(last_summary.get("outcome", "")) == "manual_exit":
-			summary_text = "The run ended early. Lingering monsters will return."
-		elif str(last_summary.get("outcome", "")) == "natural":
-			summary_text = "The field is clear. If objectives remain, summon again."
-
 	tier_label.text = "Tier %d / %d" % [SessionState.get_current_tier(), SessionState.get_total_tiers()]
-	summary_label.text = summary_text
 	population_counter.set_population_value(SessionState.format_population(SessionState.get_population_current()))
 	slot_label.text = "Slots: %d / %d" % [SessionState.get_selected_rune_ids().size(), SessionState.get_unlocked_slots()]
 

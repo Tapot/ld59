@@ -1,5 +1,5 @@
 {
-  "base_drain": 1000000,
+  "base_drain": 2000000,
   "time_scaling": 0.118,
   "rune_scaling": 0.3,
   "monster_scaling": 0.185

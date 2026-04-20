@@ -3,6 +3,7 @@ extends Control
 
 const MAIN_MENU_SCENE_PATH: String = "res://scenes/flow/main_menu.tscn"
 const UPGRADES_SCENE_PATH: String = "res://scenes/flow/upgrades_screen.tscn"
+const GAME_SCENE_PATH: String = "res://scenes/flow/game.tscn"
 const MONSTER_ICON_SIZE: Vector2 = Vector2(34.0, 34.0)
 const WINDOW_FADE_IN_DURATION: float = 0.32
 
@@ -43,6 +44,13 @@ func _refresh_content() -> void:
 		summary_label.text = "All selected tasks are complete. Tier %d is unlocked." % int(summary.get("current_tier", SessionState.get_current_tier()))
 		action_button.text = "OK"
 		return
+	if ending_mode == "retry":
+		results_scroll.visible = true
+		_rebuild_killed_monsters(summary)
+		title_label.text = "Run Ended"
+		summary_label.text = "Selected tasks are not complete yet. Spawn again to continue this tier."
+		action_button.text = "Spawn Again"
+		return
 
 	results_scroll.visible = false
 	title_label.text = "All gone"
@@ -57,7 +65,11 @@ func _on_action_button_pressed() -> void:
 		get_tree().change_scene_to_file(UPGRADES_SCENE_PATH)
 		return
 	if ending_mode == "win":
-		get_tree().change_scene_to_file(UPGRADES_SCENE_PATH)
+		SessionState.reset_session()
+		get_tree().change_scene_to_file(MAIN_MENU_SCENE_PATH)
+		return
+	if ending_mode == "retry":
+		get_tree().change_scene_to_file(GAME_SCENE_PATH)
 		return
 	SessionState.reset_session()
 	get_tree().change_scene_to_file(MAIN_MENU_SCENE_PATH)

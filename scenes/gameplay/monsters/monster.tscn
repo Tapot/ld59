@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://d3kethrj4gmda"]
 
 [ext_resource type="Script" uid="uid://gkwqxoca1w5j" path="res://scripts/gameplay/monsters/monster.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://bwjo61mfxng88" path="res://icon.svg" id="2"]
+[ext_resource type="Texture2D" uid="uid://dgtpfpvuy22vd" path="res://icon.png" id="2_kt6nt"]
 
 [sub_resource type="CircleShape2D" id="1"]
 radius = 26.0
@@ -30,7 +30,7 @@ script = ExtResource("1")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=528076993]
 scale = Vector2(0.32, 0.32)
-texture = ExtResource("2")
+texture = ExtResource("2_kt6nt")
 
 [node name="DeathMarker" type="ColorRect" parent="." unique_id=335294405]
 visible = false

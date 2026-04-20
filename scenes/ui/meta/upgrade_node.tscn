@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dnicupbermcvm"]
 
 [ext_resource type="Script" uid="uid://cruyh6g8yynn7" path="res://scripts/ui/meta/upgrade_node.gd" id="1_f7s4t"]
-[ext_resource type="Texture2D" uid="uid://bwjo61mfxng88" path="res://icon.svg" id="2_8y3yc"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="2_8y3yc"]
 [ext_resource type="FontFile" uid="uid://kxq0dfj5rsu8" path="res://assets/fonts/Jolly_Lodger/JollyLodger-Regular.ttf" id="3_font"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_node_normal"]

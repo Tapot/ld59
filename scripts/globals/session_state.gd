@@ -16,6 +16,7 @@ const TIERS_CONFIG_PATH: String = "res://data/game/tiers.json"
 const POPULATION_CONFIG_PATH: String = "res://data/game/population.json"
 const RUN_CONFIG_PATH: String = "res://data/game/run.json"
 const MAX_UNLOCKED_SLOTS: int = 7
+const MAX_AVAILABLE_RUNE_CHOICES: int = 4
 
 var _monster_definitions: Dictionary = {}
 var _rune_definitions: Dictionary = {}
@@ -27,6 +28,7 @@ var _run_config: Dictionary = {}
 var _current_tier: int = 1
 var _highest_unlocked_tier: int = 1
 var _unlocked_slots: int = 1
+var _available_rune_offer_ids_by_tier: Dictionary = {}
 var _selected_rune_ids: Array[String] = []
 var _completed_rune_ids_by_tier: Dictionary = {}
 var _selection_locked: bool = false
@@ -52,6 +54,7 @@ func reset_session() -> void:
 	_current_tier = 1
 	_highest_unlocked_tier = 1
 	_unlocked_slots = 1
+	_available_rune_offer_ids_by_tier.clear()
 	_selected_rune_ids.clear()
 	_completed_rune_ids_by_tier.clear()
 	_selection_locked = false
@@ -156,6 +159,14 @@ func get_monster_title(monster_type_id: String) -> String:
 	return monster_type_id.capitalize()
 
 
+func get_monster_type_ids() -> Array[String]:
+	var monster_type_ids: Array[String] = []
+	for monster_type_variant: Variant in _monster_definitions.keys():
+		monster_type_ids.append(str(monster_type_variant))
+	monster_type_ids.sort()
+	return monster_type_ids
+
+
 func get_monster_sprite_path(monster_type_id: String) -> String:
 	var config: Dictionary = _monster_definitions.get(monster_type_id, {})
 	return str(config.get("sprite_texture_path", ""))
@@ -166,8 +177,7 @@ func get_rune_config(rune_id: String) -> Dictionary:
 
 
 func get_available_runes_for_current_tier() -> Array[Dictionary]:
-	var tier_config: Dictionary = get_current_tier_config()
-	var available_ids: Array[String] = _array_variant_to_string_array(tier_config.get("available_runes", []))
+	var available_ids: Array[String] = _get_available_rune_offer_ids_for_tier(_current_tier)
 	var runes: Array[Dictionary] = []
 	for rune_id: String in available_ids:
 		var rune_config: Dictionary = get_rune_config(rune_id)
@@ -296,6 +306,9 @@ func finish_run(outcome: String, kill_count: int, kill_counts_by_type: Dictionar
 			tier_changed.emit(_current_tier, _highest_unlocked_tier)
 			selection_changed.emit()
 			objectives_changed.emit()
+	else:
+		ending_mode = "retry"
+		next_scene_path = "res://scenes/flow/ending_screen.tscn"
 
 	_last_run_summary = {
 		"outcome": outcome,
@@ -631,6 +644,46 @@ func _sync_unlocked_slots_to_current_tier() -> void:
 	var tier_config: Dictionary = _tier_definitions.get(_current_tier, {})
 	var slot_limit: int = maxi(1, int(tier_config.get("slots", 1)))
 	_unlocked_slots = clampi(slot_limit, 1, MAX_UNLOCKED_SLOTS)
+
+
+func _get_available_rune_offer_ids_for_tier(tier: int) -> Array[String]:
+	var stored_offer: Variant = _available_rune_offer_ids_by_tier.get(tier, [])
+	var offer_ids: Array[String] = []
+	if typeof(stored_offer) == TYPE_ARRAY:
+		for item: Variant in stored_offer:
+			offer_ids.append(str(item))
+	if not offer_ids.is_empty():
+		return offer_ids
+
+	var tier_config: Dictionary = _tier_definitions.get(tier, {})
+	var base_ids: Array[String] = _array_variant_to_string_array(tier_config.get("available_runes", []))
+	if base_ids.size() <= MAX_AVAILABLE_RUNE_CHOICES:
+		_available_rune_offer_ids_by_tier[tier] = base_ids.duplicate()
+		return base_ids
+
+	var selected_ids: Array[String] = []
+	for rune_id: String in _selected_rune_ids:
+		if not base_ids.has(rune_id):
+			continue
+		if selected_ids.has(rune_id):
+			continue
+		selected_ids.append(rune_id)
+
+	var remaining_ids: Array[String] = []
+	for rune_id: String in base_ids:
+		if selected_ids.has(rune_id):
+			continue
+		remaining_ids.append(rune_id)
+	remaining_ids.shuffle()
+
+	var next_offer_ids: Array[String] = selected_ids.duplicate()
+	for rune_id: String in remaining_ids:
+		if next_offer_ids.size() >= MAX_AVAILABLE_RUNE_CHOICES:
+			break
+		next_offer_ids.append(rune_id)
+
+	_available_rune_offer_ids_by_tier[tier] = next_offer_ids.duplicate()
+	return next_offer_ids
 
 
 func _array_variant_to_string_array(value: Variant) -> Array[String]:
