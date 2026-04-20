@@ -31,6 +31,8 @@ var _kill_counts_by_type: Dictionary = {}
 var _monsters: Array[Monster] = []
 var _all_waves_completed: bool = false
 var _run_transition_started: bool = false
+var _population_ui_accum: float = 0.0
+const POPULATION_UI_INTERVAL: float = 0.2
 
 
 func _ready() -> void:
@@ -44,7 +46,6 @@ func _ready() -> void:
 
 	monster_spawner.monster_spawned.connect(_on_monster_spawned)
 	monster_spawner.all_waves_completed.connect(_on_all_waves_completed)
-	SessionState.population_changed.connect(_refresh_population_ui)
 	SessionState.objectives_changed.connect(_refresh_objectives_ui)
 	exit_button.disabled = not SessionState.is_manual_exit_enabled()
 	exit_button.pressed.connect(_on_exit_button_pressed)
@@ -61,6 +62,11 @@ func _physics_process(delta: float) -> void:
 	var active_monster_drain_units: float = _get_active_monster_drain_units()
 	if SessionState.update_population(delta, active_monster_drain_units):
 		_finish_run("loss")
+		return
+	_population_ui_accum += delta
+	if _population_ui_accum >= POPULATION_UI_INTERVAL:
+		_population_ui_accum = 0.0
+		_refresh_population_ui(SessionState.get_population_current(), SessionState.get_current_drain_per_second())
 
 
 func add_monster(monster: Monster) -> void:

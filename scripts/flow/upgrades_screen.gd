@@ -30,6 +30,8 @@ var _confirm_buttons: Dictionary = {}
 var _card_panels: Dictionary = {}
 var _selection_was_valid: bool = false
 var _loss_transition_started: bool = false
+var _population_ui_accum: float = 0.0
+const POPULATION_UI_INTERVAL: float = 0.2
 
 
 func _ready() -> void:
@@ -61,6 +63,11 @@ func _process(delta: float) -> void:
 		_loss_transition_started = true
 		SessionState.finish_run("loss", 0)
 		get_tree().change_scene_to_file("res://scenes/flow/ending_screen.tscn")
+		return
+	_population_ui_accum += delta
+	if _population_ui_accum >= POPULATION_UI_INTERVAL:
+		_population_ui_accum = 0.0
+		population_counter.set_population_value(SessionState.format_population(SessionState.get_population_current()))
 
 
 func _refresh_screen() -> void:
@@ -582,4 +589,5 @@ func _on_tier_changed(_current_tier: int, _highest_unlocked_tier: int) -> void:
 
 
 func _on_population_changed(_current_population: int, _drain_per_second: int) -> void:
-	population_counter.set_population_value(SessionState.format_population(SessionState.get_population_current()))
+	# Throttled via _process; intentionally no-op here to avoid per-tick UI updates.
+	pass
