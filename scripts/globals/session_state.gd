@@ -1,287 +1,625 @@
 extends Node
 
 
-signal runes_changed(total_runes: int)
-signal upgrade_purchased(upgrade_id: String, new_level: int)
+signal selection_changed()
+signal objectives_changed()
+signal population_changed(current_population: int, drain_per_second: int)
+signal tier_changed(current_tier: int, highest_unlocked_tier: int)
+signal run_started(run_index: int)
+signal run_finished(summary: Dictionary)
+signal session_reset()
 
 
-const UPGRADE_TREE_PATH: String = "res://data/meta/upgrade_tree.json"
+const MONSTERS_CONFIG_PATH: String = "res://data/game/monsters.json"
+const RUNES_CONFIG_PATH: String = "res://data/game/runes.json"
+const TIERS_CONFIG_PATH: String = "res://data/game/tiers.json"
+const POPULATION_CONFIG_PATH: String = "res://data/game/population.json"
+const RUN_CONFIG_PATH: String = "res://data/game/run.json"
+const MAX_UNLOCKED_SLOTS: int = 7
 
-var _upgrade_ids: Array[String] = []
-var _upgrade_definitions: Dictionary = {}
-var _runes: int = 0
-var _run_number: int = 0
-var _upgrade_levels: Dictionary = {}
-var _last_run_kills: int = 0
-var _last_run_was_natural_end: bool = false
+var _monster_definitions: Dictionary = {}
+var _rune_definitions: Dictionary = {}
+var _tier_definitions: Dictionary = {}
+var _tier_numbers: Array[int] = []
+var _population_config: Dictionary = {}
+var _run_config: Dictionary = {}
+
+var _current_tier: int = 1
+var _highest_unlocked_tier: int = 1
+var _unlocked_slots: int = 1
+var _selected_rune_ids: Array[String] = []
+var _selection_locked: bool = false
+var _selected_rune_progress: Dictionary = {}
+var _population_start: int = 0
+var _population_current: int = 0
+var _elapsed_run_time: float = 0.0
+var _active_run_index: int = 0
+var _run_active: bool = false
+var _lingering_monsters: Array[Dictionary] = []
+var _last_run_summary: Dictionary = {}
+var _drain_per_second: int = 0
+var _population_tick_remainder: float = 0.0
 
 
 func _ready() -> void:
-	_load_upgrade_tree()
+	_load_game_data()
 	reset_session()
 
 
 func reset_session() -> void:
-	_runes = Globals.INITIAL_RUNES
-	_run_number = 0
-	_last_run_kills = 0
-	_last_run_was_natural_end = false
-	_upgrade_levels.clear()
+	_load_game_data()
+	_current_tier = 1
+	_highest_unlocked_tier = 1
+	_unlocked_slots = 1
+	_selected_rune_ids.clear()
+	_selection_locked = false
+	_selected_rune_progress.clear()
+	_population_start = int(_run_config.get("starting_population", 8153742618))
+	_population_current = _population_start
+	_elapsed_run_time = 0.0
+	_active_run_index = 0
+	_run_active = false
+	_lingering_monsters.clear()
+	_last_run_summary = {}
+	_drain_per_second = 0
+	_population_tick_remainder = 0.0
+	session_reset.emit()
+	tier_changed.emit(_current_tier, _highest_unlocked_tier)
+	selection_changed.emit()
+	objectives_changed.emit()
+	population_changed.emit(_population_current, _drain_per_second)
 
-	for upgrade_id: String in _upgrade_ids:
-		_upgrade_levels[upgrade_id] = 0
 
-	runes_changed.emit(_runes)
-
-
-func start_next_run() -> void:
-	_run_number += 1
+func get_current_tier() -> int:
+	return _current_tier
 
 
-func finish_current_run(kills: int, natural_end: bool) -> void:
-	_last_run_kills = maxi(0, kills)
-	_last_run_was_natural_end = natural_end
+func get_highest_unlocked_tier() -> int:
+	return _highest_unlocked_tier
 
 
-func add_runes(amount: int) -> void:
-	if amount <= 0:
+func get_total_tiers() -> int:
+	return _tier_numbers.size()
+
+
+func get_unlocked_slots() -> int:
+	return _unlocked_slots
+
+
+func is_selection_locked() -> bool:
+	return _selection_locked
+
+
+func is_run_active() -> bool:
+	return _run_active
+
+
+func get_last_run_summary() -> Dictionary:
+	return _last_run_summary.duplicate(true)
+
+
+func get_population_start() -> int:
+	return _population_start
+
+
+func get_population_current() -> int:
+	return _population_current
+
+
+func set_population_current(value: int) -> void:
+	_population_current = clampi(value, 0, _population_start)
+	population_changed.emit(_population_current, _drain_per_second)
+
+
+func get_current_drain_per_second() -> int:
+	return _drain_per_second
+
+
+func get_intro_counter_duration() -> float:
+	return maxf(0.5, float(_run_config.get("intro_counter_duration", 1.8)))
+
+
+func get_intro_preview_loss() -> int:
+	var preview_loss_seconds: float = maxf(0.0, float(_run_config.get("intro_preview_loss_seconds", 2.0)))
+	var base_drain: float = maxf(0.0, float(_population_config.get("base_drain", 1.0)))
+	return maxi(0, int(round(base_drain * preview_loss_seconds)))
+
+
+func get_run_attack_input_action() -> String:
+	return str(_run_config.get("attack_input_action", "attack_hold"))
+
+
+func is_manual_exit_enabled() -> bool:
+	return bool(_run_config.get("manual_exit_enabled", true))
+
+
+func should_carry_over_monsters() -> bool:
+	return bool(_run_config.get("carry_over_enabled", true))
+
+
+func get_base_group_interval() -> float:
+	return maxf(0.05, float(_run_config.get("time_between_groups", 0.65)))
+
+
+func get_current_tier_config() -> Dictionary:
+	return _tier_definitions.get(_current_tier, {}).duplicate(true)
+
+
+func get_monster_config(monster_type_id: String) -> Dictionary:
+	return _monster_definitions.get(monster_type_id, {}).duplicate(true)
+
+
+func get_monster_title(monster_type_id: String) -> String:
+	var config: Dictionary = _monster_definitions.get(monster_type_id, {})
+	var title: String = str(config.get("title", ""))
+	if not title.is_empty():
+		return title
+	return monster_type_id.capitalize()
+
+
+func get_rune_config(rune_id: String) -> Dictionary:
+	return _rune_definitions.get(rune_id, {}).duplicate(true)
+
+
+func get_available_runes_for_current_tier() -> Array[Dictionary]:
+	var tier_config: Dictionary = get_current_tier_config()
+	var available_ids: Array[String] = _array_variant_to_string_array(tier_config.get("available_runes", []))
+	var runes: Array[Dictionary] = []
+	for rune_id: String in available_ids:
+		var rune_config: Dictionary = get_rune_config(rune_id)
+		if rune_config.is_empty():
+			continue
+		runes.append(rune_config)
+	return runes
+
+
+func get_selected_rune_ids() -> Array[String]:
+	return _selected_rune_ids.duplicate()
+
+
+func set_selected_rune_ids(rune_ids: Array[String]) -> void:
+	if _selection_locked:
 		return
 
-	_runes += amount
-	runes_changed.emit(_runes)
+	var next_selection: Array[String] = []
+	var allowed_ids: Dictionary = {}
+	var available_runes: Array[Dictionary] = get_available_runes_for_current_tier()
+	for rune_config: Dictionary in available_runes:
+		allowed_ids[str(rune_config.get("id", ""))] = true
+
+	for rune_id: String in rune_ids:
+		if rune_id.is_empty():
+			continue
+		if not allowed_ids.has(rune_id):
+			continue
+		if next_selection.has(rune_id):
+			continue
+		if next_selection.size() >= _unlocked_slots:
+			break
+		next_selection.append(rune_id)
+
+	_selected_rune_ids = next_selection
+	selection_changed.emit()
+	objectives_changed.emit()
 
 
-func spend_runes(amount: int) -> bool:
-	if amount <= 0:
-		return true
+func toggle_rune_selection(rune_id: String) -> void:
+	if _selection_locked:
+		return
 
-	if _runes < amount:
+	var next_selection: Array[String] = get_selected_rune_ids()
+	if next_selection.has(rune_id):
+		next_selection.erase(rune_id)
+	else:
+		next_selection.append(rune_id)
+	set_selected_rune_ids(next_selection)
+
+
+func is_selection_valid() -> bool:
+	if _selected_rune_ids.is_empty():
+		return false
+	if _selected_rune_ids.size() > _unlocked_slots:
 		return false
 
-	_runes -= amount
-	runes_changed.emit(_runes)
+	var allowed_ids: Dictionary = {}
+	var available_runes: Array[Dictionary] = get_available_runes_for_current_tier()
+	for rune_config: Dictionary in available_runes:
+		allowed_ids[str(rune_config.get("id", ""))] = true
+
+	for rune_id: String in _selected_rune_ids:
+		if not allowed_ids.has(rune_id):
+			return false
 	return true
 
 
-func get_runes() -> int:
-	return _runes
-
-
-func get_last_run_kills() -> int:
-	return _last_run_kills
-
-
-func was_last_run_natural_end() -> bool:
-	return _last_run_was_natural_end
-
-
-func get_visible_upgrade_ids() -> Array[String]:
-	var visible_ids: Array[String] = []
-	for upgrade_id: String in _upgrade_ids:
-		if is_upgrade_visible(upgrade_id):
-			visible_ids.append(upgrade_id)
-	return visible_ids
-
-
-func get_upgrade_definition(upgrade_id: String) -> Dictionary:
-	return _upgrade_definitions.get(upgrade_id, {})
-
-
-func get_upgrade_level(upgrade_id: String) -> int:
-	return int(_upgrade_levels.get(upgrade_id, 0))
-
-
-func is_upgrade_visible(upgrade_id: String) -> bool:
-	var definition: Dictionary = get_upgrade_definition(upgrade_id)
-	if definition.is_empty():
+func start_run() -> bool:
+	if not is_selection_valid():
 		return false
 
-	var parents: Array = definition.get("parents", [])
-	if parents.is_empty():
-		return true
-
-	for parent_variant: Variant in parents:
-		var parent_id: String = str(parent_variant)
-		if get_upgrade_level(parent_id) > 0:
-			return true
-
-	return false
-
-
-func is_upgrade_maxed(upgrade_id: String) -> bool:
-	return get_upgrade_level(upgrade_id) >= get_upgrade_max_level(upgrade_id)
-
-
-func get_upgrade_max_level(upgrade_id: String) -> int:
-	var definition: Dictionary = get_upgrade_definition(upgrade_id)
-	return maxi(1, int(definition.get("max_level", 1)))
-
-
-func get_upgrade_next_cost(upgrade_id: String) -> int:
-	if is_upgrade_maxed(upgrade_id):
-		return 0
-
-	var definition: Dictionary = get_upgrade_definition(upgrade_id)
-	var base_cost: int = maxi(1, int(definition.get("base_cost", 1)))
-	var cost_growth: float = maxf(1.0, float(definition.get("cost_growth", 1.0)))
-	var current_level: int = get_upgrade_level(upgrade_id)
-	return maxi(1, int(round(base_cost * pow(cost_growth, current_level))))
-
-
-func can_purchase_upgrade(upgrade_id: String) -> bool:
-	if not is_upgrade_visible(upgrade_id):
-		return false
-
-	if is_upgrade_maxed(upgrade_id):
-		return false
-
-	return _runes >= get_upgrade_next_cost(upgrade_id)
-
-
-func purchase_upgrade(upgrade_id: String) -> bool:
-	if not can_purchase_upgrade(upgrade_id):
-		return false
-
-	var next_cost: int = get_upgrade_next_cost(upgrade_id)
-	if not spend_runes(next_cost):
-		return false
-
-	var new_level: int = get_upgrade_level(upgrade_id) + 1
-	_upgrade_levels[upgrade_id] = new_level
-	upgrade_purchased.emit(upgrade_id, new_level)
+	_run_active = true
+	_selection_locked = true
+	_active_run_index += 1
+	_elapsed_run_time = 0.0
+	_drain_per_second = 0.0
+	_initialize_objective_progress()
+	selection_changed.emit()
+	objectives_changed.emit()
+	run_started.emit(_active_run_index)
 	return true
 
 
-func get_attack_radius(base_value: float) -> float:
-	return base_value + _get_total_effect_value("attack_radius")
+func finish_run(outcome: String, kill_count: int) -> Dictionary:
+	_run_active = false
+
+	var tier_completed: bool = are_selected_rune_objectives_complete()
+	var ending_mode: String = ""
+	var next_scene_path: String = "res://scenes/flow/upgrades_screen.tscn"
+	var previous_tier: int = _current_tier
+	var next_tier: int = _current_tier
+
+	if outcome == "loss" or _population_current <= 0.0:
+		_population_current = 0
+		ending_mode = "lose"
+		next_scene_path = "res://scenes/flow/ending_screen.tscn"
+	elif tier_completed:
+		_apply_completed_rune_rewards()
+		if _current_tier >= get_total_tiers():
+			ending_mode = "win"
+			next_scene_path = "res://scenes/flow/ending_screen.tscn"
+		else:
+			next_tier = mini(get_total_tiers(), _current_tier + 1)
+			_current_tier = next_tier
+			_highest_unlocked_tier = maxi(_highest_unlocked_tier, _current_tier)
+			_selected_rune_ids.clear()
+			_selected_rune_progress.clear()
+			_selection_locked = false
+			tier_changed.emit(_current_tier, _highest_unlocked_tier)
+			selection_changed.emit()
+			objectives_changed.emit()
+
+	_last_run_summary = {
+		"outcome": outcome,
+		"kill_count": maxi(0, kill_count),
+		"tier_completed": tier_completed,
+		"ending_mode": ending_mode,
+		"previous_tier": previous_tier,
+		"current_tier": _current_tier,
+		"next_tier": next_tier,
+		"population_current": _population_current
+	}
+
+	run_finished.emit(_last_run_summary.duplicate(true))
+	return {
+		"next_scene_path": next_scene_path,
+		"ending_mode": ending_mode
+	}
 
 
-func get_damage_per_second(base_value: float) -> float:
-	return base_value + _get_total_effect_value("damage_per_second")
+func update_population(delta: float, active_monster_drain_units: float, allow_outside_run: bool = false) -> bool:
+	if not _run_active and not allow_outside_run:
+		return false
+	if _population_current <= 0:
+		return true
+
+	_elapsed_run_time += maxf(0.0, delta)
+
+	var base_drain: float = maxf(0.0, float(_population_config.get("base_drain", 1.0)))
+	var time_scaling: float = maxf(0.0, float(_population_config.get("time_scaling", 0.0)))
+	var rune_scaling: float = float(_population_config.get("rune_scaling", 0.0))
+	var monster_scaling: float = maxf(0.0, float(_population_config.get("monster_scaling", 0.0)))
+	var rune_units: float = _get_total_rune_drain_units() + get_effect_total("population_drain_multiplier_delta")
+	var time_factor: float = 1.0 + (_elapsed_run_time * time_scaling)
+	var rune_factor: float = maxf(0.1, 1.0 + (rune_units * rune_scaling))
+	var monster_factor: float = maxf(0.1, 1.0 + (active_monster_drain_units * monster_scaling))
+
+	var drain_value: float = base_drain * time_factor * rune_factor * monster_factor
+	_drain_per_second = maxi(1, int(round(drain_value)))
+	_population_tick_remainder += drain_value * maxf(0.0, delta)
+	var loss_amount: int = int(floor(_population_tick_remainder))
+	if loss_amount > 0:
+		_population_tick_remainder -= float(loss_amount)
+		_population_current = maxi(0, _population_current - loss_amount)
+	population_changed.emit(_population_current, _drain_per_second)
+	return _population_current <= 0
 
 
-func get_lifetime_slow_scale(base_value: float) -> float:
-	return clampf(base_value - _get_total_effect_value("lifetime_slow_strength"), 0.05, 1.0)
+func register_monster_kill(monster_type_id: String) -> void:
+	if _selected_rune_ids.is_empty():
+		return
+
+	var did_change: bool = false
+	for rune_id: String in _selected_rune_ids:
+		var rune_config: Dictionary = _rune_definitions.get(rune_id, {})
+		var objective: Dictionary = rune_config.get("objective", {})
+		if str(objective.get("monster_type", "")) != monster_type_id:
+			continue
+
+		var target_count: int = maxi(0, int(objective.get("count", 0)))
+		var current_value: int = maxi(0, int(_selected_rune_progress.get(rune_id, 0)))
+		var next_value: int = mini(target_count, current_value + 1)
+		if next_value == current_value:
+			continue
+
+		_selected_rune_progress[rune_id] = next_value
+		did_change = true
+
+	if did_change:
+		objectives_changed.emit()
 
 
-func get_monster_lifetime_bonus_seconds() -> float:
-	return _get_total_effect_value("monster_lifetime_bonus_seconds")
+func get_selected_objectives() -> Array[Dictionary]:
+	var objectives: Array[Dictionary] = []
+	for rune_id: String in _selected_rune_ids:
+		var rune_config: Dictionary = _rune_definitions.get(rune_id, {})
+		if rune_config.is_empty():
+			continue
+
+		var objective: Dictionary = rune_config.get("objective", {})
+		var target_count: int = maxi(0, int(objective.get("count", 0)))
+		var current_value: int = maxi(0, int(_selected_rune_progress.get(rune_id, 0)))
+		var monster_type_id: String = str(objective.get("monster_type", ""))
+		objectives.append({
+			"rune_id": rune_id,
+			"title": str(rune_config.get("title", rune_id)),
+			"family": str(rune_config.get("family", "")),
+			"monster_type": monster_type_id,
+			"monster_title": get_monster_title(monster_type_id),
+			"current": current_value,
+			"target": target_count,
+			"complete": current_value >= target_count and target_count > 0
+		})
+	return objectives
 
 
-func get_monster_move_speed_multiplier() -> float:
-	return maxf(0.2, 1.0 - _get_total_effect_value("monster_move_speed_factor"))
+func are_selected_rune_objectives_complete() -> bool:
+	var objectives: Array[Dictionary] = get_selected_objectives()
+	if objectives.is_empty():
+		return false
+
+	for objective: Dictionary in objectives:
+		if not bool(objective.get("complete", false)):
+			return false
+	return true
 
 
-func get_time_between_groups(base_value: float) -> float:
-	var reduction_factor: float = _get_total_effect_value("time_between_groups_factor")
-	return maxf(0.05, base_value * (1.0 - reduction_factor))
+func add_lingering_monster(monster_data: Dictionary) -> void:
+	if not should_carry_over_monsters():
+		return
+
+	var monster_type_id: String = str(monster_data.get("monster_type_id", ""))
+	if monster_type_id.is_empty():
+		return
+	if not _monster_definitions.has(monster_type_id):
+		return
+	_lingering_monsters.append(monster_data.duplicate(true))
 
 
-func get_waves(base_waves: Array[int]) -> Array[int]:
-	var extra_monsters: int = int(round(_get_total_effect_value("extra_monsters_per_wave")))
-	var result: Array[int] = []
-
-	for wave_size: int in base_waves:
-		result.append(maxi(1, wave_size + extra_monsters))
-
+func consume_lingering_monsters_for_run() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for monster_data: Dictionary in _lingering_monsters:
+		result.append(monster_data.duplicate(true))
+	_lingering_monsters.clear()
 	return result
 
 
-func get_runes_for_monster_kill(was_in_signal_field: bool) -> int:
-	var rune_base: float = 1.0 + _get_total_effect_value("runes_per_kill_flat")
-	if was_in_signal_field:
-		rune_base += float(get_bonus_runes_for_field_kill())
-
-	var rune_multiplier: float = 1.0 + _get_total_effect_value("runes_per_kill_multiplier")
-	return maxi(1, int(round(rune_base * rune_multiplier)))
+func get_lingering_monster_count() -> int:
+	return _lingering_monsters.size()
 
 
-func is_stasis_field_enabled() -> bool:
-	return _get_total_effect_value("stasis_field_enabled") > 0.0
-
-
-func get_bonus_runes_for_field_kill() -> int:
-	return int(round(_get_total_effect_value("bonus_rune_kill_inside_field")))
-
-
-func is_monster_spawn_burst_enabled() -> bool:
-	return _get_total_effect_value("monster_spawn_burst_enabled") > 0.0
-
-
-func is_monster_expire_burst_enabled() -> bool:
-	return _get_total_effect_value("monster_expire_burst_enabled") > 0.0
-
-
-func is_monster_kill_burst_enabled() -> bool:
-	return _get_total_effect_value("monster_kill_burst_enabled") > 0.0
-
-
-func get_monster_burst_projectile_count() -> int:
-	return 1 + maxi(0, int(round(_get_total_effect_value("monster_burst_projectile_count_bonus"))))
-
-
-func get_monster_burst_pierce_count() -> int:
-	return maxi(0, int(round(_get_total_effect_value("monster_burst_pierce_bonus"))))
-
-
-func get_monster_burst_range_bonus() -> float:
-	return maxf(0.0, _get_total_effect_value("monster_burst_range_bonus"))
-
-
-func get_monster_burst_bounce_count() -> int:
-	return maxi(0, int(round(_get_total_effect_value("monster_burst_bounce_bonus"))))
-
-
-func _get_total_effect_value(stat_name: String) -> float:
-	var total_value: float = 0.0
-
-	for upgrade_id: String in _upgrade_ids:
-		var current_level: int = get_upgrade_level(upgrade_id)
-		if current_level <= 0:
+func get_lingering_monster_drain_units() -> float:
+	var total_units: float = 0.0
+	for monster_data: Dictionary in _lingering_monsters:
+		var monster_type_id: String = str(monster_data.get("monster_type_id", ""))
+		var monster_config: Dictionary = _monster_definitions.get(monster_type_id, {})
+		if monster_config.is_empty():
 			continue
+		total_units += float(monster_config.get("drain_multiplier", 0.0))
+	return total_units
 
-		var definition: Dictionary = get_upgrade_definition(upgrade_id)
-		var effects: Array = definition.get("effects", [])
-		for effect_variant: Variant in effects:
-			if typeof(effect_variant) != TYPE_DICTIONARY:
-				continue
 
-			var effect: Dictionary = effect_variant
-			if str(effect.get("stat", "")) != stat_name:
-				continue
-
-			total_value += float(effect.get("per_level", 0.0)) * float(current_level)
-
+func get_effect_total(stat_name: String) -> float:
+	var total_value: float = 0.0
+	for rune_id: String in _selected_rune_ids:
+		var rune_config: Dictionary = _rune_definitions.get(rune_id, {})
+		total_value += _get_effect_value_from_rune(rune_config, stat_name)
 	return total_value
 
 
-func _load_upgrade_tree() -> void:
-	_upgrade_ids.clear()
-	_upgrade_definitions.clear()
+func get_attack_radius(base_value: float) -> float:
+	return base_value + get_effect_total("attack_radius")
 
-	if not FileAccess.file_exists(UPGRADE_TREE_PATH):
-		push_warning("Upgrade tree config is missing at %s" % UPGRADE_TREE_PATH)
-		return
 
-	var file: FileAccess = FileAccess.open(UPGRADE_TREE_PATH, FileAccess.READ)
-	if file == null:
-		push_warning("Upgrade tree config could not be opened at %s" % UPGRADE_TREE_PATH)
-		return
+func get_damage_per_second(base_value: float) -> float:
+	return base_value + get_effect_total("damage_per_second")
 
-	var parsed_data: Variant = JSON.parse_string(file.get_as_text())
-	if typeof(parsed_data) != TYPE_ARRAY:
-		push_warning("Upgrade tree config must be an array at %s" % UPGRADE_TREE_PATH)
-		return
 
-	var definitions: Array = parsed_data
+func get_lifetime_slow_scale(base_value: float) -> float:
+	return clampf(base_value - get_effect_total("lifetime_slow_strength"), 0.05, 1.0)
+
+
+func get_monster_lifetime_bonus_seconds() -> float:
+	return get_effect_total("monster_lifetime_bonus_seconds")
+
+
+func get_time_between_groups(base_value: float) -> float:
+	var reduction_factor: float = get_effect_total("time_between_groups_factor")
+	return maxf(0.05, base_value * (1.0 - reduction_factor))
+
+
+func get_extra_monsters_per_group() -> int:
+	return maxi(0, int(round(get_effect_total("extra_monsters_per_wave"))))
+
+
+func is_stasis_field_enabled() -> bool:
+	return get_effect_total("stasis_field_enabled") > 0.0
+
+
+func is_monster_spawn_burst_enabled() -> bool:
+	return get_effect_total("monster_spawn_burst_enabled") > 0.0
+
+
+func is_monster_expire_burst_enabled() -> bool:
+	return get_effect_total("monster_expire_burst_enabled") > 0.0
+
+
+func is_monster_kill_burst_enabled() -> bool:
+	return get_effect_total("monster_kill_burst_enabled") > 0.0
+
+
+func get_monster_burst_projectile_count() -> int:
+	return 1 + maxi(0, int(round(get_effect_total("monster_burst_projectile_count_bonus"))))
+
+
+func get_monster_burst_pierce_count() -> int:
+	return maxi(0, int(round(get_effect_total("monster_burst_pierce_bonus"))))
+
+
+func get_monster_burst_range_bonus() -> float:
+	return maxf(0.0, get_effect_total("monster_burst_range_bonus"))
+
+
+func get_monster_burst_bounce_count() -> int:
+	return maxi(0, int(round(get_effect_total("monster_burst_bounce_bonus"))))
+
+
+func format_population(value: int) -> String:
+	return _format_int_with_commas(maxi(0, value))
+
+
+func _load_game_data() -> void:
+	_load_monsters()
+	_load_runes()
+	_load_tiers()
+	_population_config = _load_json_dictionary(POPULATION_CONFIG_PATH)
+	_run_config = _load_json_dictionary(RUN_CONFIG_PATH)
+
+
+func _load_monsters() -> void:
+	_monster_definitions.clear()
+	var definitions: Array = _load_json_array(MONSTERS_CONFIG_PATH)
 	for definition_variant: Variant in definitions:
 		if typeof(definition_variant) != TYPE_DICTIONARY:
 			continue
-
 		var definition: Dictionary = definition_variant
-		var upgrade_id: String = str(definition.get("id", ""))
-		if upgrade_id.is_empty():
+		var monster_id: String = str(definition.get("id", ""))
+		if monster_id.is_empty():
 			continue
+		_monster_definitions[monster_id] = definition
 
-		_upgrade_ids.append(upgrade_id)
-		_upgrade_definitions[upgrade_id] = definition
+
+func _load_runes() -> void:
+	_rune_definitions.clear()
+	var definitions: Array = _load_json_array(RUNES_CONFIG_PATH)
+	for definition_variant: Variant in definitions:
+		if typeof(definition_variant) != TYPE_DICTIONARY:
+			continue
+		var definition: Dictionary = definition_variant
+		var rune_id: String = str(definition.get("id", ""))
+		if rune_id.is_empty():
+			continue
+		_rune_definitions[rune_id] = definition
+
+
+func _load_tiers() -> void:
+	_tier_definitions.clear()
+	_tier_numbers.clear()
+	var definitions: Array = _load_json_array(TIERS_CONFIG_PATH)
+	for definition_variant: Variant in definitions:
+		if typeof(definition_variant) != TYPE_DICTIONARY:
+			continue
+		var definition: Dictionary = definition_variant
+		var tier_number: int = maxi(1, int(definition.get("tier", 0)))
+		_tier_numbers.append(tier_number)
+		_tier_definitions[tier_number] = definition
+	_tier_numbers.sort()
+
+
+func _load_json_dictionary(path: String) -> Dictionary:
+	if not FileAccess.file_exists(path):
+		push_warning("Missing config at %s" % path)
+		return {}
+
+	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		push_warning("Could not open config at %s" % path)
+		return {}
+
+	var parsed_data: Variant = JSON.parse_string(file.get_as_text())
+	if typeof(parsed_data) != TYPE_DICTIONARY:
+		push_warning("Expected dictionary config at %s" % path)
+		return {}
+	return parsed_data
+
+
+func _load_json_array(path: String) -> Array:
+	if not FileAccess.file_exists(path):
+		push_warning("Missing config at %s" % path)
+		return []
+
+	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		push_warning("Could not open config at %s" % path)
+		return []
+
+	var parsed_data: Variant = JSON.parse_string(file.get_as_text())
+	if typeof(parsed_data) != TYPE_ARRAY:
+		push_warning("Expected array config at %s" % path)
+		return []
+	return parsed_data
+
+
+func _initialize_objective_progress() -> void:
+	for rune_id: String in _selected_rune_ids:
+		if _selected_rune_progress.has(rune_id):
+			continue
+		_selected_rune_progress[rune_id] = 0
+
+
+func _apply_completed_rune_rewards() -> void:
+	var slot_bonus: int = maxi(0, int(round(get_effect_total("unlocked_slots"))))
+	if slot_bonus > 0:
+		_unlocked_slots = clampi(_unlocked_slots + slot_bonus, 1, MAX_UNLOCKED_SLOTS)
+
+
+func _get_total_rune_drain_units() -> float:
+	var total_units: float = 0.0
+	for rune_id: String in _selected_rune_ids:
+		var rune_config: Dictionary = _rune_definitions.get(rune_id, {})
+		var drain_multiplier: float = float(rune_config.get("drain_multiplier", 1.0))
+		total_units += drain_multiplier - 1.0
+	return total_units
+
+
+func _get_effect_value_from_rune(rune_config: Dictionary, stat_name: String) -> float:
+	var total_value: float = 0.0
+	if str(rune_config.get("effect_type", "")) == stat_name:
+		total_value += float(rune_config.get("effect_value", 0.0))
+	if str(rune_config.get("secondary_effect_type", "")) == stat_name:
+		total_value += float(rune_config.get("secondary_effect_value", 0.0))
+	return total_value
+
+
+func _array_variant_to_string_array(value: Variant) -> Array[String]:
+	var result: Array[String] = []
+	if typeof(value) != TYPE_ARRAY:
+		return result
+	for item: Variant in value:
+		result.append(str(item))
+	return result
+
+
+func _format_int_with_commas(value: int) -> String:
+	var negative: bool = value < 0
+	var digits: String = str(abs(value))
+	var grouped: String = ""
+	var digit_index: int = 0
+
+	for index: int in range(digits.length() - 1, -1, -1):
+		grouped = digits[index] + grouped
+		digit_index += 1
+		if index > 0 and digit_index % 3 == 0:
+			grouped = "," + grouped
+
+	if negative:
+		return "-" + grouped
+	return grouped

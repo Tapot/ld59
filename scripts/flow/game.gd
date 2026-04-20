@@ -2,14 +2,7 @@ class_name Game
 extends Control
 
 
-const RUN_END_CHOICE_SCENE_PATH: String = "res://scenes/flow/run_end_choice.tscn"
-const UPGRADES_SCENE_PATH: String = "res://scenes/flow/upgrades_screen.tscn"
 const MONSTER_PROJECTILE_SCENE: PackedScene = preload("res://scenes/gameplay/combat/monster_projectile.tscn")
-const WAVE_PROGRESS_COLORS: Array[Color] = [
-	Color(0.2, 0.55, 1.0, 1.0),
-	Color(1.0, 0.68, 0.18, 1.0),
-	Color(0.34, 0.86, 0.42, 1.0)
-]
 
 enum BurstTrigger {
 	SPAWN,
@@ -17,46 +10,53 @@ enum BurstTrigger {
 	KILL
 }
 
-const BUBBLE_SOUNDS: Array[AudioStream] = [
-	preload("res://audio/ld59_bubble1.mp3"),
-	preload("res://audio/ld59_bubble2.mp3"),
-	preload("res://audio/ld59_bubble3.mp3"),
-	preload("res://audio/ld59_bubble4.mp3"),
-]
 const BUBBLE_PITCH_MIN: float = 0.85
 const BUBBLE_PITCH_MAX: float = 1.15
 const BUBBLE_VOLUME_BASE: float = -6.0
 const BUBBLE_VOLUME_RANGE: float = 1.5
 
-
 @onready var monster_spawner: MonsterSpawner = $OuterFrame/PlayfieldFrame/World/MonsterSpawner
 @onready var projectile_container: Node2D = $OuterFrame/PlayfieldFrame/World/Projectiles
 @onready var player_attack: PlayerAttack = $OuterFrame/PlayfieldFrame/World/PlayerAttack
-@onready var wave1_label: Label = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/WaveUi/WaveTrackRow/WaveNames/Wave1Label
-@onready var wave2_label: Label = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/WaveUi/WaveTrackRow/WaveNames/Wave2Label
-@onready var wave3_label: Label = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/WaveUi/WaveTrackRow/WaveNames/Wave3Label
-@onready var wave_progress_track: Panel = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/WaveUi/WaveTrackRow/WaveProgressTrack
-@onready var wave_progress_ui: WaveUI = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/WaveUi
+@onready var drain_label: Label = $OuterFrame/TopBar/TopBarMargin/TopBarContent/DrainLabel
+@onready var tier_label: Label = $OuterFrame/TopBar/TopBarMargin/TopBarContent/TierLabel
+@onready var objectives_list: VBoxContainer = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/ObjectivesScroll/ObjectivesList
+@onready var objectives_title: Label = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/TitleLabel
+@onready var status_label: Label = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/StatusLabel
 @onready var exit_button: Button = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/ExitButton
+@onready var population_counter = $PopulationCounter
 @onready var _bubble_sfx_pool: Array[AudioStreamPlayer] = [$BubbleSfx1, $BubbleSfx2, $BubbleSfx3]
 
 var _kill_count: int = 0
 var _monsters: Array[Monster] = []
-var _wave_labels: Array[Label] = []
 var _all_waves_completed: bool = false
 var _run_transition_started: bool = false
 
 
 func _ready() -> void:
-	_wave_labels = [wave1_label, wave2_label, wave3_label]
-	_apply_meta_to_run()
+	if not SessionState.is_run_active():
+		SessionState.start_run()
+
+	_apply_rune_effects()
+	_refresh_population_ui(SessionState.get_population_current(), SessionState.get_current_drain_per_second())
+	_refresh_objectives_ui()
+
 	monster_spawner.monster_spawned.connect(_on_monster_spawned)
-	monster_spawner.wave_started.connect(_on_wave_started)
 	monster_spawner.all_waves_completed.connect(_on_all_waves_completed)
-	wave_progress_track.resized.connect(_refresh_wave_ui)
+	SessionState.population_changed.connect(_refresh_population_ui)
+	SessionState.objectives_changed.connect(_refresh_objectives_ui)
+	exit_button.disabled = not SessionState.is_manual_exit_enabled()
 	exit_button.pressed.connect(_on_exit_button_pressed)
-	call_deferred("_refresh_wave_ui")
 	monster_spawner.begin_run()
+
+
+func _physics_process(delta: float) -> void:
+	if _run_transition_started:
+		return
+
+	var active_monster_drain_units: float = _get_active_monster_drain_units()
+	if SessionState.update_population(delta, active_monster_drain_units):
+		_finish_run("loss")
 
 
 func add_monster(monster: Monster) -> void:
@@ -69,122 +69,167 @@ func add_monster(monster: Monster) -> void:
 	monster.tree_exited.connect(_on_monster_tree_exited.bind(monster), CONNECT_ONE_SHOT)
 
 
-func _on_monster_spawned(monster: Monster) -> void:
-	add_monster(monster)
-	_refresh_wave_ui()
-	_spawn_monster_burst(monster, BurstTrigger.SPAWN)
-
-
-func _on_wave_started(_wave_number: int) -> void:
-	_refresh_wave_ui()
-
-
-func _on_all_waves_completed() -> void:
-	_all_waves_completed = true
-	_refresh_wave_ui()
-	_maybe_finish_run_naturally()
-
-
-func _on_monster_killed(monster: Monster) -> void:
-	_kill_count += 1
-	SessionState.add_runes(SessionState.get_runes_for_monster_kill(player_attack.is_targeting_monster(monster)))
-	_spawn_monster_burst(monster, BurstTrigger.KILL)
-	_play_bubble_sfx()
-
-
-func _on_monster_expired(monster: Monster) -> void:
-	_spawn_monster_burst(monster, BurstTrigger.EXPIRE)
-
-
-func _on_monster_tree_exited(monster: Monster) -> void:
-	_monsters.erase(monster)
-	_refresh_wave_ui()
-	_maybe_finish_run_naturally()
-
-
-func _refresh_wave_ui() -> void:
-	var total_waves: int = maxi(1, monster_spawner.get_total_waves())
-	var current_wave_number: int = monster_spawner.get_current_wave_number()
-	var progress_value: float = monster_spawner.get_current_wave_remaining_progress()
-
-	if monster_spawner.are_waves_completed():
-		progress_value = 0.0
-
-	_apply_wave_progress(progress_value, current_wave_number, total_waves)
-
-
-func _apply_wave_progress(progress_value: float, current_wave_number: int, total_waves: int) -> void:
-	var clamped_progress: float = clampf(progress_value, 0.0, 1.0)
-	wave_progress_ui.set_progress(clamped_progress, 1.0)
-
-	for index: int in _wave_labels.size():
-		var label: Label = _wave_labels[index]
-		if index < total_waves:
-			label.visible = true
-			if monster_spawner.are_waves_completed():
-				label.modulate = Color(1.0, 1.0, 1.0, 1.0)
-			elif index == current_wave_number - 1:
-				label.modulate = _get_wave_progress_color(current_wave_number)
-			elif index < current_wave_number - 1:
-				label.modulate = Color(1.0, 1.0, 1.0, 1.0)
-			else:
-				label.modulate = Color(0.7, 0.7, 0.7, 1.0)
-			continue
-
-		label.visible = false
-
-
-func _get_wave_progress_color(current_wave_number: int) -> Color:
-	if monster_spawner.are_waves_completed():
-		return WAVE_PROGRESS_COLORS[WAVE_PROGRESS_COLORS.size() - 1]
-
-	var safe_index: int = clampi(maxi(0, current_wave_number - 1), 0, WAVE_PROGRESS_COLORS.size() - 1)
-	return WAVE_PROGRESS_COLORS[safe_index]
-
-
-func _apply_meta_to_run() -> void:
+func _apply_rune_effects() -> void:
+	player_attack.attack_input_action = SessionState.get_run_attack_input_action()
 	player_attack.attack_radius = SessionState.get_attack_radius(player_attack.attack_radius)
 	player_attack.damage_per_second = SessionState.get_damage_per_second(player_attack.damage_per_second)
 	player_attack.lifetime_slow_scale = SessionState.get_lifetime_slow_scale(player_attack.lifetime_slow_scale)
 	player_attack.stasis_field_enabled = SessionState.is_stasis_field_enabled()
 	player_attack.refresh_runtime_configuration()
+	tier_label.text = "Tier %d" % SessionState.get_current_tier()
 
-	monster_spawner.waves = SessionState.get_waves(monster_spawner.waves)
-	monster_spawner.time_between_groups = SessionState.get_time_between_groups(monster_spawner.time_between_groups)
-	monster_spawner.monster_lifetime_bonus_seconds = SessionState.get_monster_lifetime_bonus_seconds()
-	monster_spawner.monster_move_speed_multiplier = SessionState.get_monster_move_speed_multiplier()
+
+func _on_monster_spawned(monster: Monster) -> void:
+	add_monster(monster)
+	_spawn_monster_burst(monster, BurstTrigger.SPAWN)
+	_refresh_status_label()
+
+
+func _on_all_waves_completed() -> void:
+	_all_waves_completed = true
+	_refresh_status_label()
+	_maybe_finish_run_naturally()
+
+
+func _on_monster_killed(monster: Monster) -> void:
+	_kill_count += 1
+	SessionState.register_monster_kill(monster.monster_type_id)
+	_spawn_monster_burst(monster, BurstTrigger.KILL)
+	_play_bubble_sfx()
+	_refresh_status_label()
+
+
+func _on_monster_expired(monster: Monster) -> void:
+	SessionState.add_lingering_monster(monster.to_lingering_data())
+	_spawn_monster_burst(monster, BurstTrigger.EXPIRE)
+	_refresh_status_label()
+
+
+func _on_monster_tree_exited(monster: Monster) -> void:
+	_monsters.erase(monster)
+	_refresh_status_label()
+	_maybe_finish_run_naturally()
 
 
 func _maybe_finish_run_naturally() -> void:
 	if _run_transition_started:
 		return
-
 	if not _all_waves_completed:
 		return
-
 	if not _monsters.is_empty():
 		return
 
-	_run_transition_started = true
-	SessionState.finish_current_run(_kill_count, true)
-	get_tree().change_scene_to_file(RUN_END_CHOICE_SCENE_PATH)
+	_finish_run("natural")
 
 
 func _on_exit_button_pressed() -> void:
+	_finish_run("manual_exit")
+
+
+func _finish_run(outcome: String) -> void:
 	if _run_transition_started:
 		return
 
 	_run_transition_started = true
-	SessionState.finish_current_run(_kill_count, false)
-	get_tree().change_scene_to_file(UPGRADES_SCENE_PATH)
+	if outcome != "natural":
+		_capture_surviving_monsters()
+
+	var result: Dictionary = SessionState.finish_run(outcome, _kill_count)
+	get_tree().change_scene_to_file(str(result.get("next_scene_path", "res://scenes/flow/upgrades_screen.tscn")))
+
+
+func _capture_surviving_monsters() -> void:
+	for monster: Monster in _monsters:
+		if monster == null:
+			continue
+		if not is_instance_valid(monster):
+			continue
+		if not monster.is_alive_for_carry_over():
+			continue
+		SessionState.add_lingering_monster(monster.to_lingering_data())
+
+
+func _refresh_population_ui(current_population: int, drain_per_second: int) -> void:
+	population_counter.set_population_value(SessionState.format_population(current_population))
+	drain_label.text = "Drain / sec: %s" % SessionState.format_population(drain_per_second)
+
+
+func _refresh_objectives_ui() -> void:
+	for child: Node in objectives_list.get_children():
+		child.queue_free()
+
+	var objectives: Array[Dictionary] = SessionState.get_selected_objectives()
+	objectives_title.text = "Rune Objectives"
+	if objectives.is_empty():
+		status_label.text = "No runes selected."
+		return
+
+	for objective: Dictionary in objectives:
+		var objective_panel: PanelContainer = PanelContainer.new()
+		var content: VBoxContainer = VBoxContainer.new()
+		var title: Label = Label.new()
+		var progress: Label = Label.new()
+		var state: Label = Label.new()
+
+		title.text = "%s [%s]" % [str(objective.get("title", "")), str(objective.get("family", ""))]
+		progress.text = "Kill %d %s: %d / %d" % [
+			int(objective.get("target", 0)),
+			str(objective.get("monster_title", "")),
+			int(objective.get("current", 0)),
+			int(objective.get("target", 0))
+		]
+		state.text = "Complete" if bool(objective.get("complete", false)) else "Incomplete"
+		content.add_child(title)
+		content.add_child(progress)
+		content.add_child(state)
+		objective_panel.add_child(content)
+		objectives_list.add_child(objective_panel)
+
+	_refresh_status_label()
+
+
+func _refresh_status_label() -> void:
+	if SessionState.are_selected_rune_objectives_complete():
+		status_label.text = "Objectives complete. Clear the field or exit to resolve the tier."
+		return
+	if _all_waves_completed:
+		status_label.text = "No new waves remain. Finish the lingering monsters."
+		return
+	status_label.text = "Monsters alive: %d" % _count_alive_monsters()
+
+
+func _count_alive_monsters() -> int:
+	var alive_count: int = 0
+	for monster: Monster in _monsters:
+		if monster == null:
+			continue
+		if not is_instance_valid(monster):
+			continue
+		if not monster.is_alive_for_carry_over():
+			continue
+		alive_count += 1
+	return alive_count
+
+
+func _get_active_monster_drain_units() -> float:
+	var total_units: float = 0.0
+	for monster: Monster in _monsters:
+		if monster == null:
+			continue
+		if not is_instance_valid(monster):
+			continue
+		total_units += monster.get_population_drain_units()
+	return total_units
 
 
 func _play_bubble_sfx() -> void:
+	var bubble_sounds: Array[AudioStream] = Audio.BUBBLE_SOUNDS
 	for player: AudioStreamPlayer in _bubble_sfx_pool:
 		if not player.playing:
-			player.stream = BUBBLE_SOUNDS[randi() % BUBBLE_SOUNDS.size()]
+			player.stream = bubble_sounds[randi() % bubble_sounds.size()]
 			player.pitch_scale = randf_range(BUBBLE_PITCH_MIN, BUBBLE_PITCH_MAX)
-			player.volume_db = BUBBLE_VOLUME_BASE + randf_range(-BUBBLE_VOLUME_RANGE, BUBBLE_VOLUME_RANGE)
+			var base_volume_db: float = BUBBLE_VOLUME_BASE + randf_range(-BUBBLE_VOLUME_RANGE, BUBBLE_VOLUME_RANGE)
+			player.volume_db = Audio.get_sfx_volume_db(base_volume_db)
 			player.play()
 			return
 
@@ -205,7 +250,6 @@ func _spawn_monster_burst(monster: Monster, trigger: int) -> void:
 		BurstTrigger.SPAWN:
 			if not SessionState.is_monster_spawn_burst_enabled():
 				return
-
 			projectile_count = SessionState.get_monster_burst_projectile_count()
 			projectile_damage = 18.0
 			projectile_speed = 330.0
@@ -214,7 +258,6 @@ func _spawn_monster_burst(monster: Monster, trigger: int) -> void:
 		BurstTrigger.EXPIRE:
 			if not SessionState.is_monster_expire_burst_enabled():
 				return
-
 			projectile_count = SessionState.get_monster_burst_projectile_count()
 			projectile_damage = 22.0
 			projectile_speed = 360.0
@@ -223,7 +266,6 @@ func _spawn_monster_burst(monster: Monster, trigger: int) -> void:
 		BurstTrigger.KILL:
 			if not SessionState.is_monster_kill_burst_enabled():
 				return
-
 			projectile_count = SessionState.get_monster_burst_projectile_count()
 			projectile_damage = 28.0
 			projectile_speed = 390.0
@@ -322,7 +364,7 @@ func _spawn_burst_projectile(
 		projectile_pierces,
 		projectile_bounces,
 		projectile_tint,
-		source_monster,
+		source_monster
 	)
 	Callable(self, "_add_burst_projectile_to_container").call_deferred(projectile)
 
@@ -330,12 +372,10 @@ func _spawn_burst_projectile(
 func _add_burst_projectile_to_container(projectile: MonsterProjectile) -> void:
 	if projectile == null:
 		return
-
 	if projectile_container == null or not is_instance_valid(projectile_container):
 		if is_instance_valid(projectile):
 			projectile.queue_free()
 		return
-
 	projectile_container.add_child(projectile)
 
 
@@ -350,18 +390,15 @@ func _get_burst_target_direction(source_monster: Monster) -> Vector2:
 	for monster: Monster in _monsters:
 		if monster == source_monster:
 			continue
-
 		if not is_instance_valid(monster):
 			continue
-
-		if not monster.monitorable:
+		if not monster.is_alive_for_carry_over():
 			continue
 
 		var offset: Vector2 = monster.global_position - source_position
 		var distance_squared: float = offset.length_squared()
 		if distance_squared <= 1.0:
 			continue
-
 		if distance_squared >= closest_distance_squared:
 			continue
 

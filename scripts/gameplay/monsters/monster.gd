@@ -21,19 +21,20 @@ enum MonsterState {
 @export var expire_fade_duration: float = 0.3
 @export var death_marker_duration: float = 0.5
 
-# --- Damage FX constants ---
 const FX_BURN_RAMP_SPEED: float = 6.0
 const FX_BURN_COOLDOWN_SPEED: float = 3.0
 const FX_BURN_PULSE_SPEED: float = 8.0
 const FX_BURN_PULSE_AMOUNT: float = 0.25
 const FX_BURN_MAX_WHITE: float = 0.7
 const FX_SHAKE_MAX_OFFSET: float = 1.5
+const FX_DAMAGE_WINDOW: float = 0.05
+const STATUS_BAR_WIDTH: float = 72.0
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var death_marker: ColorRect = $DeathMarker
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
-@onready var hp_bar: ProgressBar = $HpBar
-@onready var lifetime_bar: ProgressBar = $LifetimeBar
+@onready var hp_bar: ProgressBar = $StatusLine/HpBar
+@onready var lifetime_bar: ProgressBar = $StatusLine/LifetimeBar
 @onready var walk_timer: Timer = $WalkTimer
 @onready var death_particles: CPUParticles2D = $DeathParticles
 @onready var burn_scorch: CPUParticles2D = $BurnScorch
@@ -44,29 +45,67 @@ var remaining_lifetime: float = 0.0
 var spawn_position: Vector2 = Vector2.ZERO
 var walk_target: Vector2 = Vector2.ZERO
 var is_walking: bool = false
+var monster_type_id: String = "drifter"
+var monster_title: String = "Drifter"
+var drain_multiplier: float = 1.0
+var behavior_type: String = "wander"
+
+var _sprite_scale: float = 0.32
+var _sprite_tint: Color = Color.WHITE
+var _collision_radius: float = 26.0
+var _configured_start_hp: float = -1.0
+var _configured_start_remaining_lifetime: float = -1.0
 var _lifetime_slow_count: int = 0
 var _lifetime_slow_scale: float = 1.0
 var _motion_lock_count: int = 0
 var _state: MonsterState = MonsterState.ALIVE
 var _despawn_elapsed: float = 0.0
 var _despawn_duration: float = 0.0
-# --- Damage FX state ---
 var _fx_burn_intensity: float = 0.0
 var _fx_damage_timer: float = 0.0
 
-const FX_DAMAGE_WINDOW: float = 0.05
+
+func configure_from_runtime(monster_config: Dictionary, carry_over_data: Dictionary = {}) -> void:
+	monster_type_id = str(monster_config.get("id", "drifter"))
+	monster_title = str(monster_config.get("title", monster_type_id.capitalize()))
+	max_hp = maxf(1.0, float(monster_config.get("hp", max_hp)))
+	var lifetime_seconds: float = maxf(0.5, float(monster_config.get("lifetime", lifetime_range_seconds.y)))
+	lifetime_range_seconds = Vector2(lifetime_seconds, lifetime_seconds)
+	move_speed = maxf(1.0, float(monster_config.get("speed", move_speed)))
+	drain_multiplier = maxf(0.1, float(monster_config.get("drain_multiplier", 1.0)))
+	behavior_type = str(monster_config.get("behavior_type", "wander"))
+	roam_radius = maxf(80.0, float(monster_config.get("roam_radius", roam_radius)))
+	idle_time_range = _vector2_from_json(monster_config.get("idle_time_range", [idle_time_range.x, idle_time_range.y]), idle_time_range)
+	walk_time_range = _vector2_from_json(monster_config.get("walk_time_range", [walk_time_range.x, walk_time_range.y]), walk_time_range)
+	_sprite_scale = float(monster_config.get("sprite_scale", _sprite_scale))
+	_sprite_tint = _color_from_json(monster_config.get("sprite_tint", [1.0, 1.0, 1.0, 1.0]), Color.WHITE)
+	_collision_radius = maxf(4.0, float(monster_config.get("collision_radius", _collision_radius)))
+
+	_configured_start_hp = float(carry_over_data.get("hp", -1.0))
+	_configured_start_remaining_lifetime = float(carry_over_data.get("remaining_lifetime", -1.0))
 
 
 func _ready() -> void:
-	hp = max_hp
+	add_to_group("attackable_monsters")
+	hp = max_hp if _configured_start_hp <= 0.0 else clampf(_configured_start_hp, 1.0, max_hp)
 	max_lifetime = _roll_lifetime()
-	remaining_lifetime = max_lifetime
+	if _configured_start_remaining_lifetime > 0.0:
+		remaining_lifetime = clampf(_configured_start_remaining_lifetime, 0.1, max_lifetime)
+	else:
+		remaining_lifetime = max_lifetime
 	spawn_position = global_position
 	walk_target = global_position
 	is_walking = false
+	sprite.scale = Vector2.ONE * _sprite_scale
+	sprite.modulate = _sprite_tint
+	var circle_shape: CircleShape2D = collision_shape.shape as CircleShape2D
+	if circle_shape != null:
+		circle_shape.radius = _collision_radius
+	hp_bar.custom_minimum_size.x = STATUS_BAR_WIDTH * 0.5
+	lifetime_bar.custom_minimum_size.x = STATUS_BAR_WIDTH * 0.5
 	hp_bar.max_value = max_hp
 	hp_bar.value = hp
-	hp_bar.visible = false
+	hp_bar.visible = true
 	lifetime_bar.max_value = max_lifetime
 	lifetime_bar.value = remaining_lifetime
 	walk_timer.timeout.connect(_on_walk_timer_timeout)
@@ -109,51 +148,27 @@ func take_damage(amount: float) -> void:
 	_fx_damage_timer = FX_DAMAGE_WINDOW
 	hp = maxf(0.0, hp - amount)
 	hp_bar.value = hp
-	hp_bar.visible = hp < max_hp
 
 	if hp <= 0.0:
 		_start_death_sequence()
 
 
-func _on_walk_timer_timeout() -> void:
-	if _motion_lock_count > 0:
-		return
-
-	if is_walking:
-		is_walking = false
-		_schedule_idle()
-		return
-
-	var direction: Vector2 = _pick_walk_direction()
-	var distance: float = randf_range(roam_radius * 0.7, roam_radius)
-	var desired_target: Vector2 = global_position + direction * distance
-	var offset_from_spawn: Vector2 = desired_target - spawn_position
-	if offset_from_spawn.length() > roam_radius:
-		offset_from_spawn = offset_from_spawn.normalized() * roam_radius
-	walk_target = _clamp_to_move_bounds(spawn_position + offset_from_spawn)
-	is_walking = true
-	walk_timer.start(randf_range(walk_time_range.x, walk_time_range.y))
+func is_alive_for_carry_over() -> bool:
+	return _state == MonsterState.ALIVE and hp > 0.0
 
 
-func _schedule_idle() -> void:
-	walk_timer.start(randf_range(idle_time_range.x, idle_time_range.y))
+func get_population_drain_units() -> float:
+	if not is_alive_for_carry_over():
+		return 0.0
+	return drain_multiplier
 
 
-func _update_lifetime(delta: float) -> bool:
-	remaining_lifetime = maxf(0.0, remaining_lifetime - delta * _get_lifetime_tick_scale())
-	lifetime_bar.value = remaining_lifetime
-
-	if remaining_lifetime <= 0.0:
-		_start_expire_sequence()
-		return true
-
-	return false
-
-
-func _roll_lifetime() -> float:
-	var min_lifetime: float = minf(lifetime_range_seconds.x, lifetime_range_seconds.y)
-	var max_lifetime_value: float = maxf(lifetime_range_seconds.x, lifetime_range_seconds.y)
-	return randf_range(min_lifetime, max_lifetime_value)
+func to_lingering_data() -> Dictionary:
+	return {
+		"monster_type_id": monster_type_id,
+		"hp": hp,
+		"remaining_lifetime": remaining_lifetime
+	}
 
 
 func push_lifetime_slow(slow_scale: float) -> void:
@@ -188,10 +203,44 @@ func pop_motion_lock() -> void:
 		_schedule_idle()
 
 
+func _on_walk_timer_timeout() -> void:
+	if _motion_lock_count > 0:
+		return
+
+	if is_walking:
+		is_walking = false
+		_schedule_idle()
+		return
+
+	walk_target = _pick_walk_target()
+	is_walking = true
+	walk_timer.start(randf_range(walk_time_range.x, walk_time_range.y))
+
+
+func _schedule_idle() -> void:
+	walk_timer.start(randf_range(idle_time_range.x, idle_time_range.y))
+
+
+func _update_lifetime(delta: float) -> bool:
+	remaining_lifetime = maxf(0.0, remaining_lifetime - delta * _get_lifetime_tick_scale())
+	lifetime_bar.value = remaining_lifetime
+
+	if remaining_lifetime <= 0.0:
+		_start_expire_sequence()
+		return true
+
+	return false
+
+
+func _roll_lifetime() -> float:
+	var min_lifetime: float = minf(lifetime_range_seconds.x, lifetime_range_seconds.y)
+	var max_lifetime_value: float = maxf(lifetime_range_seconds.x, lifetime_range_seconds.y)
+	return randf_range(min_lifetime, max_lifetime_value)
+
+
 func _get_lifetime_tick_scale() -> float:
 	if _lifetime_slow_count <= 0:
 		return 1.0
-
 	return _lifetime_slow_scale
 
 
@@ -221,6 +270,7 @@ func _start_death_sequence() -> void:
 
 func _begin_despawn(next_state: MonsterState, duration: float) -> void:
 	_state = next_state
+	remove_from_group("attackable_monsters")
 	_despawn_elapsed = 0.0
 	_despawn_duration = maxf(0.001, duration)
 	is_walking = false
@@ -277,29 +327,70 @@ func _update_burn_effect(delta: float) -> void:
 
 	var pulse: float = (1.0 + sin(Time.get_ticks_msec() * 0.001 * FX_BURN_PULSE_SPEED * TAU)) * 0.5
 	var white_amount: float = _fx_burn_intensity * (FX_BURN_MAX_WHITE - FX_BURN_PULSE_AMOUNT + pulse * FX_BURN_PULSE_AMOUNT)
-	var c: float = 1.0 + white_amount
-	sprite.self_modulate = Color(c, c, c, 1.0)
+	var color_scale: float = 1.0 + white_amount
+	sprite.self_modulate = Color(color_scale, color_scale, color_scale, 1.0)
+
+
+func _pick_walk_target() -> Vector2:
+	if behavior_type == "seek_center":
+		var center: Vector2 = (Globals.MONSTERS_FIELD_MIN + Globals.MONSTERS_FIELD_MAX) * 0.5
+		var offset: Vector2 = Vector2(randf_range(-90.0, 90.0), randf_range(-90.0, 90.0))
+		return _clamp_to_move_bounds(center + offset)
+
+	var direction: Vector2 = _pick_walk_direction()
+	var distance: float = randf_range(roam_radius * 0.55, roam_radius)
+	var desired_target: Vector2 = global_position + direction * distance
+	var offset_from_spawn: Vector2 = desired_target - spawn_position
+	if offset_from_spawn.length() > roam_radius:
+		offset_from_spawn = offset_from_spawn.normalized() * roam_radius
+	return _clamp_to_move_bounds(spawn_position + offset_from_spawn)
 
 
 func _pick_walk_direction() -> Vector2:
 	var current_offset: Vector2 = global_position - spawn_position
-	if current_offset.length() > 8.0 and randf() < 0.8:
-		var jitter_angle: float = randf_range(-0.25, 0.25)
-		return current_offset.normalized().rotated(jitter_angle)
-
-	return Vector2.from_angle(randf_range(0.0, TAU))
+	match behavior_type:
+		"skitter":
+			if current_offset.length() > 8.0 and randf() < 0.72:
+				return current_offset.normalized().rotated(randf_range(-0.55, 0.55))
+			return Vector2.from_angle(randf_range(0.0, TAU))
+		"lumber":
+			if current_offset.length() > 8.0 and randf() < 0.95:
+				return current_offset.normalized().rotated(randf_range(-0.1, 0.1))
+			return Vector2.from_angle(randf_range(0.0, TAU))
+		_:
+			if current_offset.length() > 8.0 and randf() < 0.8:
+				return current_offset.normalized().rotated(randf_range(-0.25, 0.25))
+			return Vector2.from_angle(randf_range(0.0, TAU))
 
 
 func _clamp_to_move_bounds(target_position: Vector2) -> Vector2:
 	return Vector2(
-		clampf(
-			target_position.x,
-			Globals.MONSTERS_FIELD_MIN.x,
-			Globals.MONSTERS_FIELD_MAX.x
-		),
-		clampf(
-			target_position.y,
-			Globals.MONSTERS_FIELD_MIN.y,
-			Globals.MONSTERS_FIELD_MAX.y
-		)
+		clampf(target_position.x, Globals.MONSTERS_FIELD_MIN.x, Globals.MONSTERS_FIELD_MAX.x),
+		clampf(target_position.y, Globals.MONSTERS_FIELD_MIN.y, Globals.MONSTERS_FIELD_MAX.y)
 	)
+
+
+func _vector2_from_json(value: Variant, fallback: Vector2) -> Vector2:
+	if typeof(value) != TYPE_ARRAY:
+		return fallback
+
+	var values: Array = value
+	if values.size() < 2:
+		return fallback
+
+	return Vector2(float(values[0]), float(values[1]))
+
+
+func _color_from_json(value: Variant, fallback: Color) -> Color:
+	if typeof(value) != TYPE_ARRAY:
+		return fallback
+
+	var values: Array = value
+	if values.size() < 3:
+		return fallback
+
+	var alpha: float = 1.0
+	if values.size() >= 4:
+		alpha = float(values[3])
+
+	return Color(float(values[0]), float(values[1]), float(values[2]), alpha)
