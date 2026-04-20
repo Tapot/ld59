@@ -63,6 +63,7 @@ func reset_session() -> void:
 	_last_run_summary = {}
 	_drain_per_second = 0
 	_population_tick_remainder = 0.0
+	_sync_unlocked_slots_to_current_tier()
 	session_reset.emit()
 	tier_changed.emit(_current_tier, _highest_unlocked_tier)
 	selection_changed.emit()
@@ -125,10 +126,6 @@ func get_intro_preview_loss() -> int:
 	return maxi(0, int(round(base_drain * preview_loss_seconds)))
 
 
-func get_run_attack_input_action() -> String:
-	return str(_run_config.get("attack_input_action", "attack_hold"))
-
-
 func is_manual_exit_enabled() -> bool:
 	return bool(_run_config.get("manual_exit_enabled", true))
 
@@ -155,6 +152,11 @@ func get_monster_title(monster_type_id: String) -> String:
 	if not title.is_empty():
 		return title
 	return monster_type_id.capitalize()
+
+
+func get_monster_sprite_path(monster_type_id: String) -> String:
+	var config: Dictionary = _monster_definitions.get(monster_type_id, {})
+	return str(config.get("sprite_texture_path", ""))
 
 
 func get_rune_config(rune_id: String) -> Dictionary:
@@ -248,7 +250,7 @@ func start_run() -> bool:
 	return true
 
 
-func finish_run(outcome: String, kill_count: int) -> Dictionary:
+func finish_run(outcome: String, kill_count: int, kill_counts_by_type: Dictionary = {}) -> Dictionary:
 	_run_active = false
 
 	var tier_completed: bool = are_selected_rune_objectives_complete()
@@ -256,12 +258,16 @@ func finish_run(outcome: String, kill_count: int) -> Dictionary:
 	var next_scene_path: String = "res://scenes/flow/upgrades_screen.tscn"
 	var previous_tier: int = _current_tier
 	var next_tier: int = _current_tier
+	var completed_objectives: Array[Dictionary] = get_selected_objectives()
+	var selected_rune_ids_snapshot: Array[String] = _selected_rune_ids.duplicate()
 
 	if outcome == "loss" or _population_current <= 0.0:
 		_population_current = 0
 		ending_mode = "lose"
 		next_scene_path = "res://scenes/flow/ending_screen.tscn"
 	elif tier_completed:
+		ending_mode = "tier_complete"
+		next_scene_path = "res://scenes/flow/ending_screen.tscn"
 		_apply_completed_rune_rewards()
 		if _current_tier >= get_total_tiers():
 			ending_mode = "win"
@@ -270,6 +276,7 @@ func finish_run(outcome: String, kill_count: int) -> Dictionary:
 			next_tier = mini(get_total_tiers(), _current_tier + 1)
 			_current_tier = next_tier
 			_highest_unlocked_tier = maxi(_highest_unlocked_tier, _current_tier)
+			_sync_unlocked_slots_to_current_tier()
 			_selected_rune_ids.clear()
 			_selected_rune_progress.clear()
 			_selection_locked = false
@@ -285,7 +292,10 @@ func finish_run(outcome: String, kill_count: int) -> Dictionary:
 		"previous_tier": previous_tier,
 		"current_tier": _current_tier,
 		"next_tier": next_tier,
-		"population_current": _population_current
+		"population_current": _population_current,
+		"selected_rune_ids": selected_rune_ids_snapshot,
+		"objectives": completed_objectives,
+		"killed_monsters": kill_counts_by_type.duplicate(true)
 	}
 
 	run_finished.emit(_last_run_summary.duplicate(true))
@@ -305,11 +315,11 @@ func update_population(delta: float, active_monster_drain_units: float, allow_ou
 
 	var base_drain: float = maxf(0.0, float(_population_config.get("base_drain", 1.0)))
 	var time_scaling: float = maxf(0.0, float(_population_config.get("time_scaling", 0.0)))
-	var rune_scaling: float = float(_population_config.get("rune_scaling", 0.0))
 	var monster_scaling: float = maxf(0.0, float(_population_config.get("monster_scaling", 0.0)))
-	var rune_units: float = _get_total_rune_drain_units() + get_effect_total("population_drain_multiplier_delta")
+	var rune_factor: float = _get_total_rune_drain_multiplier()
+	var rune_delta: float = get_effect_total("population_drain_multiplier_delta")
 	var time_factor: float = 1.0 + (_elapsed_run_time * time_scaling)
-	var rune_factor: float = maxf(0.1, 1.0 + (rune_units * rune_scaling))
+	rune_factor *= maxf(0.2, 1.0 + rune_delta)
 	var monster_factor: float = maxf(0.1, 1.0 + (active_monster_drain_units * monster_scaling))
 
 	var drain_value: float = base_drain * time_factor * rune_factor * monster_factor
@@ -331,7 +341,8 @@ func register_monster_kill(monster_type_id: String) -> void:
 	for rune_id: String in _selected_rune_ids:
 		var rune_config: Dictionary = _rune_definitions.get(rune_id, {})
 		var objective: Dictionary = rune_config.get("objective", {})
-		if str(objective.get("monster_type", "")) != monster_type_id:
+		var objective_type: String = str(objective.get("monster_type", ""))
+		if objective_type != "any" and objective_type != monster_type_id:
 			continue
 
 		var target_count: int = maxi(0, int(objective.get("count", 0)))
@@ -366,7 +377,8 @@ func get_selected_objectives() -> Array[Dictionary]:
 			"monster_title": get_monster_title(monster_type_id),
 			"current": current_value,
 			"target": target_count,
-			"complete": current_value >= target_count and target_count > 0
+			"complete": current_value >= target_count and target_count > 0,
+			"task_description": str(rune_config.get("task_description", ""))
 		})
 	return objectives
 
@@ -468,6 +480,10 @@ func is_monster_kill_burst_enabled() -> bool:
 
 func get_monster_burst_projectile_count() -> int:
 	return 1 + maxi(0, int(round(get_effect_total("monster_burst_projectile_count_bonus"))))
+
+
+func get_monster_burst_damage_bonus() -> float:
+	return maxf(0.0, get_effect_total("monster_burst_damage_bonus"))
 
 
 func get_monster_burst_pierce_count() -> int:
@@ -576,18 +592,16 @@ func _initialize_objective_progress() -> void:
 
 
 func _apply_completed_rune_rewards() -> void:
-	var slot_bonus: int = maxi(0, int(round(get_effect_total("unlocked_slots"))))
-	if slot_bonus > 0:
-		_unlocked_slots = clampi(_unlocked_slots + slot_bonus, 1, MAX_UNLOCKED_SLOTS)
+	pass
 
 
-func _get_total_rune_drain_units() -> float:
-	var total_units: float = 0.0
+func _get_total_rune_drain_multiplier() -> float:
+	var total_multiplier: float = 1.0
 	for rune_id: String in _selected_rune_ids:
 		var rune_config: Dictionary = _rune_definitions.get(rune_id, {})
 		var drain_multiplier: float = float(rune_config.get("drain_multiplier", 1.0))
-		total_units += drain_multiplier - 1.0
-	return total_units
+		total_multiplier *= maxf(0.2, drain_multiplier)
+	return total_multiplier
 
 
 func _get_effect_value_from_rune(rune_config: Dictionary, stat_name: String) -> float:
@@ -597,6 +611,12 @@ func _get_effect_value_from_rune(rune_config: Dictionary, stat_name: String) -> 
 	if str(rune_config.get("secondary_effect_type", "")) == stat_name:
 		total_value += float(rune_config.get("secondary_effect_value", 0.0))
 	return total_value
+
+
+func _sync_unlocked_slots_to_current_tier() -> void:
+	var tier_config: Dictionary = _tier_definitions.get(_current_tier, {})
+	var slot_limit: int = maxi(1, int(tier_config.get("slots", 1)))
+	_unlocked_slots = clampi(slot_limit, 1, MAX_UNLOCKED_SLOTS)
 
 
 func _array_variant_to_string_array(value: Variant) -> Array[String]:

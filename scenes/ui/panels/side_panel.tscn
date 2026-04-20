@@ -1,4 +1,6 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://bob6uo14lhfqv"]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/widgets/objectives_scroll.tscn" id="1"]
 
 [sub_resource type="StyleBoxFlat" id="1"]
 bg_color = Color(0.1, 0.1, 0.1, 1)
@@ -20,11 +22,11 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[node name="SidePanel" type="Panel"]
+[node name="SidePanel" type="Panel" unique_id=880265000]
 custom_minimum_size = Vector2(232, 624)
 theme_override_styles/panel = SubResource("1")
 
-[node name="SidePanelMargin" type="MarginContainer" parent="."]
+[node name="SidePanelMargin" type="MarginContainer" parent="." unique_id=1444841949]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -36,36 +38,20 @@ theme_override_constants/margin_top = 14
 theme_override_constants/margin_right = 14
 theme_override_constants/margin_bottom = 14
 
-[node name="SidePanelContent" type="VBoxContainer" parent="SidePanelMargin"]
+[node name="SidePanelContent" type="VBoxContainer" parent="SidePanelMargin" unique_id=848506565]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 12
 
-[node name="TitleLabel" type="Label" parent="SidePanelMargin/SidePanelContent"]
+[node name="ObjectivesScroll" parent="SidePanelMargin/SidePanelContent" unique_id=2072886482 instance=ExtResource("1")]
+custom_minimum_size = Vector2(0, 500)
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
-text = "Rune Objectives"
 
-[node name="StatusLabel" type="Label" parent="SidePanelMargin/SidePanelContent"]
-layout_mode = 2
-text = "Monsters alive: 0"
-autowrap_mode = 3
-
-[node name="ObjectivesScroll" type="ScrollContainer" parent="SidePanelMargin/SidePanelContent"]
-custom_minimum_size = Vector2(0, 0)
+[node name="Spacer" type="Control" parent="SidePanelMargin/SidePanelContent" unique_id=365311457]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ObjectivesList" type="VBoxContainer" parent="SidePanelMargin/SidePanelContent/ObjectivesScroll"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="Spacer" type="Control" parent="SidePanelMargin/SidePanelContent"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="ExitButton" type="Button" parent="SidePanelMargin/SidePanelContent"]
+[node name="ExitButton" type="Button" parent="SidePanelMargin/SidePanelContent" unique_id=1285271248]
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 theme_override_styles/normal = SubResource("2")

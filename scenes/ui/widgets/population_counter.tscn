@@ -1,12 +1,36 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dkwhou2b7f12e"]
 
-[ext_resource type="Script" path="res://scripts/ui/widgets/population_counter.gd" id="1"]
+[ext_resource type="Script" uid="uid://dhs78bshwm7wy" path="res://scripts/ui/widgets/population_counter.gd" id="1"]
 
-[node name="PopulationCounter" type="Control"]
+[sub_resource type="StyleBoxFlat" id="StyleBox_1"]
+bg_color = Color(0.04, 0.04, 0.04, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.28, 0.28, 0.28, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="PopulationCounter" type="Control" unique_id=1110710053]
 custom_minimum_size = Vector2(420, 56)
+layout_mode = 3
+anchors_preset = 0
 script = ExtResource("1")
 
-[node name="Row" type="HBoxContainer" parent="."]
+[node name="BgPanel" type="Panel" parent="." unique_id=1543269010]
+custom_minimum_size = Vector2(500, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBox_1")
+
+[node name="Row" type="HBoxContainer" parent="." unique_id=1466408134]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -19,16 +43,16 @@ offset_right = 210.0
 offset_bottom = 28.0
 grow_horizontal = 2
 grow_vertical = 2
-alignment = 1
 theme_override_constants/separation = 8
+alignment = 1
 
-[node name="TitleLabel" type="Label" parent="Row"]
+[node name="TitleLabel" type="Label" parent="Row" unique_id=1077055781]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Population: "
 horizontal_alignment = 2
 
-[node name="ValueLabel" type="Label" parent="Row"]
+[node name="ValueLabel" type="Label" parent="Row" unique_id=1772505499]
 layout_mode = 2
 theme_override_font_sizes/font_size = 42
 text = "0"

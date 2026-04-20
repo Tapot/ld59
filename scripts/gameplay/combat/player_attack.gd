@@ -17,7 +17,6 @@ const ACTIVE_COLOR: Color = Color(1.0, 0.84, 0.32, 0.96)
 @export var stasis_field_enabled: bool = false
 @export var attack_bounds_position: Vector2 = Vector2.ZERO
 @export var attack_bounds_size: Vector2 = Vector2(1280.0, 720.0)
-@export var attack_input_action: String = "attack_hold"
 
 @onready var attack_range: CollisionShape2D = $AttackRange
 @onready var cursor_ring: Line2D = $CursorRing
@@ -27,7 +26,6 @@ var _targeted_monsters: Array[Monster] = []
 var _field_effect_monsters: Dictionary = {}
 var _is_active_in_bounds: bool = false
 var _hit_sfx_cooldown: float = 0.0
-var _was_attack_active: bool = false
 
 
 func _ready() -> void:
@@ -45,21 +43,14 @@ func _process(_delta: float) -> void:
 	if parent_node == null:
 		return
 
-	var local_mouse_position: Vector2 = parent_node.to_local(get_global_mouse_position())
-	_is_active_in_bounds = Rect2(attack_bounds_position, attack_bounds_size).has_point(local_mouse_position)
+	var mouse_global_position: Vector2 = get_global_mouse_position()
+	var attack_bounds_global_position: Vector2 = parent_node.global_position + attack_bounds_position
+	_is_active_in_bounds = Rect2(attack_bounds_global_position, attack_bounds_size).has_point(mouse_global_position)
 	visible = _is_active_in_bounds
 	cursor_ring.default_color = ACTIVE_COLOR if _is_active_in_bounds else INACTIVE_COLOR
 
-	var attack_is_active: bool = _is_active_in_bounds
-	if attack_is_active != _was_attack_active:
-		if attack_is_active:
-			print("[attack] activated pos=", local_mouse_position, " radius=", attack_radius, " dps=", damage_per_second)
-		else:
-			print("[attack] deactivated")
-		_was_attack_active = attack_is_active
-
 	if _is_active_in_bounds:
-		position = local_mouse_position
+		global_position = mouse_global_position
 		return
 
 	_clear_targets_and_effects()
@@ -69,7 +60,7 @@ func _physics_process(delta: float) -> void:
 	if _hit_sfx_cooldown > 0.0:
 		_hit_sfx_cooldown -= delta
 
-	if not _is_active_in_bounds:
+	if not _is_active_in_bounds :
 		_release_all_field_effects()
 		return
 
@@ -81,7 +72,6 @@ func _physics_process(delta: float) -> void:
 			continue
 
 		_apply_field_effects(monster)
-		print("[attack] damage target=", monster.monster_type_id, " hp_before=", monster.hp, " damage=", damage_amount)
 		monster.take_damage(damage_amount)
 		dealt_damage = true
 
@@ -117,12 +107,6 @@ func _refresh_targets_from_distance() -> void:
 		if monster.global_position.distance_to(global_position) > attack_radius:
 			continue
 		next_targets.append(monster)
-
-	if not next_targets.is_empty():
-		var seen_monsters: Array[String] = []
-		for monster: Monster in next_targets:
-			seen_monsters.append("%s hp=%s pos=%s" % [monster.monster_type_id, str(monster.hp), str(monster.global_position)])
-		print("[attack] sees monsters: ", ", ".join(seen_monsters))
 
 	for monster: Monster in _targeted_monsters:
 		if next_targets.has(monster):
@@ -174,9 +158,20 @@ func _release_all_field_effects() -> void:
 		monster.pop_lifetime_slow()
 		if stasis_field_enabled:
 			monster.pop_motion_lock()
+
+
 func _play_hit_sfx() -> void:
+	if not is_inside_tree():
+		return
+
 	var hit_sounds: Array[AudioStream] = Audio.HIT_SOUNDS
 	for player: AudioStreamPlayer in _hit_sfx_pool:
+		if player == null:
+			continue
+		if not is_instance_valid(player):
+			continue
+		if not player.is_inside_tree():
+			continue
 		if not player.playing:
 			player.stream = hit_sounds[randi() % hit_sounds.size()]
 			player.pitch_scale = randf_range(HIT_PITCH_MIN, HIT_PITCH_MAX)

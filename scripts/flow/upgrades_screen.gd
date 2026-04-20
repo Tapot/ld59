@@ -45,7 +45,7 @@ func _refresh_screen() -> void:
 
 func _refresh_header() -> void:
 	var last_summary: Dictionary = SessionState.get_last_run_summary()
-	var summary_text: String = "Choose the runes that will carry this tier."
+	var summary_text: String = "Choose the runes for this tier. Selected rune effects apply in the next core run."
 	if SessionState.is_selection_locked():
 		summary_text = "Loadout locked. Finish every selected rune objective to unlock the next tier."
 	elif not last_summary.is_empty():
@@ -107,16 +107,14 @@ func _refresh_card_states() -> void:
 
 
 func _format_rune_card_text(rune_config: Dictionary) -> String:
-	var objective: Dictionary = rune_config.get("objective", {})
-	var monster_title: String = SessionState.get_monster_title(str(objective.get("monster_type", "")))
 	var drain_multiplier: float = float(rune_config.get("drain_multiplier", 1.0))
-	var drain_text: String = "Drain %+0.2f" % (drain_multiplier - 1.0)
-	return "%s\n%s\n%s\nObjective: Kill %d %s\n%s" % [
+	var drain_text: String = "Drain x%.2f" % drain_multiplier
+	var task_description: String = str(rune_config.get("task_description", ""))
+	return "%s\n%s\n%s\nTask: %s\n%s" % [
 		str(rune_config.get("title", "")),
 		str(rune_config.get("family", "")),
 		str(rune_config.get("description", "")),
-		int(objective.get("count", 0)),
-		monster_title,
+		task_description,
 		drain_text
 	]
 

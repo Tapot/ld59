@@ -74,4 +74,4 @@ func _move_counter_to_top() -> void:
 	var tween: Tween = create_tween()
 	tween.set_trans(Tween.TRANS_SINE)
 	tween.set_ease(Tween.EASE_IN_OUT)
-	tween.tween_property(population_counter, "position:y", TOP_COUNTER_Y, 0.6)
+	tween.tween_property(population_counter, "global_position:y", TOP_COUNTER_Y, 0.6)
