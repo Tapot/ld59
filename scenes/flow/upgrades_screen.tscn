@@ -1,9 +1,9 @@
-[gd_scene format=3 uid="uid://bur62u6p3i0rk"]
+[gd_scene format=3 uid="uid://dtneqexxihe8e"]
 
 [ext_resource type="Script" uid="uid://k2cbmyiyctyu" path="res://scripts/flow/upgrades_screen.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://doone2xa8ro2g" path="res://scenes/ui/widgets/volume_controls.tscn" id="2"]
-[ext_resource type="PackedScene" uid="uid://dkwhou2b7f12e" path="res://scenes/ui/widgets/population_counter.tscn" id="3"]
-[ext_resource type="Texture2D" uid="uid://cnrb8curlhe20" path="res://assets/images/ui/runes_back.png" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/widgets/population_counter.tscn" id="3"]
+[ext_resource type="Texture2D" uid="uid://x6ysj3va55vx" path="res://assets/images/ui/runes_back.png" id="4"]
 [ext_resource type="Texture2D" uid="uid://bdtmr1x8yjvbj" path="res://assets/images/ui/button_normal.png" id="5_btnn"]
 [ext_resource type="Texture2D" uid="uid://ceclwb12p2q68" path="res://assets/images/ui/button_hover.png" id="6_btnh"]
 [ext_resource type="FontFile" uid="uid://kxq0dfj5rsu8" path="res://assets/fonts/Jolly_Lodger/JollyLodger-Regular.ttf" id="7_font"]
@@ -81,8 +81,8 @@ theme_override_constants/separation = 4
 [node name="TierLabel" type="Label" parent="Paper/Margin/Content/Header" unique_id=1797154678]
 visible = false
 layout_mode = 2
-theme_override_fonts/font = ExtResource("7_font")
 theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("7_font")
 theme_override_font_sizes/font_size = 28
 text = "Tier 1 / 10"
 
@@ -99,8 +99,8 @@ theme_override_constants/separation = 8
 [node name="RuneListLabel" type="Label" parent="Paper/Margin/Content/MainArea/LeftPanel" unique_id=739972473]
 visible = false
 layout_mode = 2
-theme_override_fonts/font = ExtResource("7_font")
 theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("7_font")
 theme_override_font_sizes/font_size = 18
 text = "Available Runes"
 
@@ -121,16 +121,16 @@ theme_override_constants/separation = 10
 
 [node name="SlotsLabel" type="Label" parent="Paper/Margin/Content/MainArea/RightPanel" unique_id=1309140507]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("7_font")
 theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("7_font")
 theme_override_font_sizes/font_size = 18
 text = "Rune Slots"
 horizontal_alignment = 1
 
 [node name="SlotLabel" type="Label" parent="Paper/Margin/Content/MainArea/RightPanel" unique_id=1489850933]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("7_font")
 theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("7_font")
 text = "Slots: 0 / 1"
 horizontal_alignment = 1
 
