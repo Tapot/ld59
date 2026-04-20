@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://e7tfpn5m1xb8" path="res://scripts/flow/main_menu.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://doone2xa8ro2g" path="res://scenes/ui/widgets/volume_controls.tscn" id="2"]
-[ext_resource type="Texture2D" uid="uid://cxhro05l0oosj" path="res://assets/images/start_back.png" id="2_l6c7e"]
+[ext_resource type="Texture2D" uid="uid://cxhro05l0oosj" path="res://assets/images/ui/start_back.png" id="2_l6c7e"]
 
 [sub_resource type="StyleBoxFlat" id="2"]
 bg_color = Color(0.24, 0.18, 0.14, 1)

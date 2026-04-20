@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://chxipragxyoep" path="res://scripts/flow/intro_sequence.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://doone2xa8ro2g" path="res://scenes/ui/widgets/volume_controls.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/ui/widgets/population_counter.tscn" id="3"]
-[ext_resource type="Texture2D" uid="uid://ciw2f70uegp8l" path="res://assets/images/intro_text.png" id="4"]
+[ext_resource type="Texture2D" uid="uid://ciw2f70uegp8l" path="res://assets/images/ui/intro_text.png" id="4"]
 
 [node name="IntroSequence" type="Control" unique_id=1756480223]
 layout_mode = 3
