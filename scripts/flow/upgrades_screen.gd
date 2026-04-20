@@ -7,7 +7,7 @@ const UI_FONT: FontFile = preload("res://assets/fonts/Jolly_Lodger/JollyLodger-R
 const SLOT_SIZE: Vector2 = Vector2(64, 64)
 const RUNE_ICON_SIZE: Vector2 = Vector2(28, 28)
 const SLOT_ICON_SIZE: Vector2 = Vector2(24, 24)
-const RUNE_PLACEHOLDER_ICON: Texture2D = preload("res://icon.png")
+const RUNE_ICON_BASE_PATH: String = "res://assets/images/ui/runes_folder/"
 
 @onready var tier_label: Label = $Paper/Margin/Content/Header/TierLabel
 @onready var slot_label: Label = $Paper/Margin/Content/MainArea/RightPanel/SlotLabel
@@ -182,7 +182,7 @@ func _fill_slot_as_past(panel: PanelContainer, rune_config: Dictionary) -> void:
 	var name_label: Label = slot_content.get_child(1) as Label
 	var title: String = str(rune_config.get("title", "?"))
 	icon.visible = true
-	icon.texture = RUNE_PLACEHOLDER_ICON
+	icon.texture = _get_rune_icon(rune_config)
 	name_label.text = title
 	name_label.remove_theme_font_size_override("font_size")
 	name_label.add_theme_font_size_override("font_size", 9)
@@ -262,7 +262,7 @@ func _refresh_pyramid() -> void:
 			var rune_config: Dictionary = SessionState.get_rune_config(selected_ids[i])
 			var title: String = str(rune_config.get("title", "?"))
 			icon.visible = true
-			icon.texture = RUNE_PLACEHOLDER_ICON
+			icon.texture = _get_rune_icon(rune_config)
 			name_label.text = title
 			name_label.remove_theme_font_size_override("font_size")
 			name_label.add_theme_font_size_override("font_size", 9)
@@ -375,7 +375,7 @@ func _rebuild_rune_list() -> void:
 		body_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 		var icon: TextureRect = TextureRect.new()
-		icon.texture = RUNE_PLACEHOLDER_ICON
+		icon.texture = _get_rune_icon(rune_config)
 		icon.custom_minimum_size = RUNE_ICON_SIZE
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -449,6 +449,36 @@ func _make_card_style(is_selected: bool) -> StyleBoxFlat:
 	style.content_margin_top = 10
 	style.content_margin_bottom = 10
 	return style
+
+
+func _get_rune_icon(rune_config: Dictionary) -> Texture2D:
+	var rune_id: String = str(rune_config.get("id", ""))
+	var icon_name: String = rune_id
+	match rune_id:
+		"damage_focus_1":
+			icon_name = "damage_icon_1"
+		"damage_focus_2":
+			icon_name = "damage_icon_2"
+		"damage_focus_3":
+			icon_name = "damage_icon_3"
+		"damage_hold_1":
+			icon_name = "signal_hold_1"
+		"damage_stasis_1":
+			icon_name = "stasis_field_1"
+		"rupture_kill_1":
+			icon_name = "rupture_projectile_1"
+		"rupture_damage_1":
+			icon_name = "rupture_payload_1"
+		"rupture_shards_1":
+			icon_name = "rupture_multishot_1"
+		"rupture_lifetime_1":
+			icon_name = "long_fuse_1"
+		"rupture_pierce_1":
+			icon_name = "needle_chain_1"
+		"rupture_bounce_1":
+			icon_name = "ricochet_1"
+	var texture: Texture2D = load("%s%s.png" % [RUNE_ICON_BASE_PATH, icon_name]) as Texture2D
+	return texture
 
 
 func _on_card_gui_input(event: InputEvent, rune_id: String) -> void:
