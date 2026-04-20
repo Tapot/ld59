@@ -8,8 +8,8 @@ const HIT_PITCH_MAX: float = 1.12
 const HIT_COOLDOWN: float = 0.15
 const HIT_VOLUME_BASE: float = -14.0
 const HIT_VOLUME_RANGE: float = 1.5
-const INACTIVE_COLOR: Color = Color(0.58, 0.86, 0.94, 0.72)
-const ACTIVE_COLOR: Color = Color(1.0, 0.84, 0.32, 0.96)
+const INACTIVE_COLOR: Color = Color(0.58, 0.86, 0.94, 0.35)
+const ACTIVE_COLOR: Color = Color(1.0, 0.84, 0.32, 0.45)
 
 @export var attack_radius: float = 24.0
 @export var damage_per_second: float = 67.5
@@ -20,6 +20,7 @@ const ACTIVE_COLOR: Color = Color(1.0, 0.84, 0.32, 0.96)
 
 @onready var attack_range: CollisionShape2D = $AttackRange
 @onready var cursor_ring: Line2D = $CursorRing
+@onready var burning_dot: BurningDot = $BurningDot
 @onready var _hit_sfx_pool: Array[AudioStreamPlayer] = [$HitSfx1, $HitSfx2]
 
 var _targeted_monsters: Array[Monster] = []
@@ -68,6 +69,7 @@ func _physics_process(delta: float) -> void:
 	_refresh_targets_from_distance()
 	var damage_amount: float = damage_per_second * delta
 	var dealt_damage: bool = false
+	var hit_count: int = 0
 	for monster: Monster in _targeted_monsters:
 		if not is_instance_valid(monster):
 			continue
@@ -75,10 +77,16 @@ func _physics_process(delta: float) -> void:
 		_apply_field_effects(monster)
 		monster.take_damage(damage_amount)
 		dealt_damage = true
+		hit_count += 1
 
 	if dealt_damage and _hit_sfx_cooldown <= 0.0:
 		_play_hit_sfx()
 		_hit_sfx_cooldown = HIT_COOLDOWN
+	if burning_dot != null:
+		if dealt_damage:
+			burning_dot.pulse_from_hit(hit_count)
+		else:
+			burning_dot.clear_targets()
 
 
 func refresh_runtime_configuration() -> void:

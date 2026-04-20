@@ -92,11 +92,83 @@ func _on_area_entered(area: Area2D) -> void:
 
 	_hit_monster_ids[monster_id] = true
 	monster.take_damage(damage, false, false)
+	_spawn_impact_particles(monster.global_position)
 	if remaining_pierces > 0:
 		remaining_pierces -= 1
 		return
 
 	queue_free()
+
+
+func _spawn_impact_particles(_unused: Vector2) -> void:
+	var parent: Node = get_parent()
+	if parent == null:
+		return
+	var impact_position: Vector2 = global_position
+	# Sparks: small, fast, additive, spray backward
+	var sparks: CPUParticles2D = CPUParticles2D.new()
+	sparks.global_position = impact_position
+	sparks.amount = 7
+	sparks.lifetime = 0.3
+	sparks.one_shot = true
+	sparks.emitting = true
+	sparks.explosiveness = 1.0
+	sparks.randomness = 0.4
+	sparks.local_coords = false
+	sparks.emission_shape = CPUParticles2D.EMISSION_SHAPE_POINT
+	sparks.direction = -direction
+	sparks.spread = 60.0
+	sparks.initial_velocity_min = 110.0
+	sparks.initial_velocity_max = 200.0
+	sparks.scale_amount_min = 0.7
+	sparks.scale_amount_max = 1.4
+	sparks.damping_min = 180.0
+	sparks.damping_max = 260.0
+	var sgrad: Gradient = Gradient.new()
+	var sbright: Color = _tint.lightened(0.45)
+	var sfade: Color = Color(_tint.r, _tint.g, _tint.b, 0.0)
+	sgrad.colors = PackedColorArray([sbright, _tint, sfade])
+	sgrad.offsets = PackedFloat32Array([0.0, 0.5, 1.0])
+	sparks.color_ramp = sgrad
+	var smat: CanvasItemMaterial = CanvasItemMaterial.new()
+	smat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	sparks.material = smat
+	sparks.z_index = 6
+	parent.add_child(sparks)
+
+	# Puff: soft expanding cloud, non-additive, slow drift backward
+	var puff: CPUParticles2D = CPUParticles2D.new()
+	puff.global_position = impact_position
+	puff.amount = 5
+	puff.lifetime = 0.45
+	puff.one_shot = true
+	puff.emitting = true
+	puff.explosiveness = 1.0
+	puff.randomness = 0.5
+	puff.local_coords = false
+	puff.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+	puff.emission_sphere_radius = 2.0
+	puff.direction = -direction
+	puff.spread = 45.0
+	puff.initial_velocity_min = 25.0
+	puff.initial_velocity_max = 55.0
+	puff.scale_amount_min = 1.4
+	puff.scale_amount_max = 2.6
+	puff.damping_min = 60.0
+	puff.damping_max = 100.0
+	var pgrad: Gradient = Gradient.new()
+	var psoft: Color = Color(_tint.r, _tint.g, _tint.b, 0.45)
+	var pfade: Color = Color(_tint.r, _tint.g, _tint.b, 0.0)
+	pgrad.colors = PackedColorArray([psoft, pfade])
+	pgrad.offsets = PackedFloat32Array([0.0, 1.0])
+	puff.color_ramp = pgrad
+	puff.z_index = 5
+	parent.add_child(puff)
+
+	var cleanup_delay: float = maxf(sparks.lifetime, puff.lifetime) + 0.1
+	var timer: SceneTreeTimer = get_tree().create_timer(cleanup_delay)
+	timer.timeout.connect(sparks.queue_free)
+	timer.timeout.connect(puff.queue_free)
 
 
 func _maybe_bounce_from_bounds() -> void:

@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://dapf5s62dvs6b"]
 
 [ext_resource type="Script" uid="uid://bycag8pe2mmrj" path="res://scripts/gameplay/combat/player_attack.gd" id="1_j4upo"]
+[ext_resource type="Script" path="res://scripts/gameplay/combat/burning_dot.gd" id="2_burn"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_q1an7"]
 radius = 20.0
@@ -24,3 +25,6 @@ volume_db = -14.0
 
 [node name="HitSfx2" type="AudioStreamPlayer" parent="." unique_id=1413374508]
 volume_db = -14.0
+
+[node name="BurningDot" type="Node2D" parent="."]
+script = ExtResource("2_burn")
