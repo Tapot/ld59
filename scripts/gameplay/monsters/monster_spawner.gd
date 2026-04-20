@@ -5,6 +5,7 @@ extends Node
 signal monster_spawned(monster: Monster)
 signal wave_started(wave_number: int)
 signal all_waves_completed()
+signal monster_plan_changed(remaining_monster_count: int, alive_monster_count: int)
 
 
 @export var monster_scene: PackedScene
@@ -23,6 +24,8 @@ var _current_groups: Array[Dictionary] = []
 var _wave_is_active: bool = false
 var _waves_completed: bool = false
 var _has_started: bool = false
+var _planned_monster_total: int = 0
+var _killed_monster_total: int = 0
 
 
 func _ready() -> void:
@@ -39,9 +42,13 @@ func begin_run() -> void:
 		return
 
 	_has_started = true
-	_build_wave_plan()
+	_planned_monster_total = 0
+	_killed_monster_total = 0
 	_carry_over_entries = SessionState.consume_lingering_monsters_for_run()
+	_build_wave_plan()
+	_recalculate_planned_monster_total()
 	_spawn_carry_over_monsters()
+	_emit_monster_plan_changed()
 
 	if _waves.is_empty():
 		_finish_all_waves()
@@ -52,6 +59,25 @@ func begin_run() -> void:
 
 func are_waves_completed() -> bool:
 	return _waves_completed
+
+
+func get_remaining_monster_count() -> int:
+	return maxi(0, _planned_monster_total - _killed_monster_total)
+
+
+func get_alive_monster_count() -> int:
+	return _alive_monsters.size()
+
+
+func get_planned_monster_type_ids() -> Array[String]:
+	var planned_type_ids: Array[String] = []
+	for carry_over_entry: Dictionary in _carry_over_entries:
+		_append_monster_type_id(planned_type_ids, str(carry_over_entry.get("monster_type_id", "")))
+
+	for wave: Dictionary in _waves:
+		for group: Dictionary in wave.get("groups", []):
+			_append_monster_type_id(planned_type_ids, str(group.get("monster_type", "")))
+	return planned_type_ids
 
 
 func _on_wave_timer_timeout() -> void:
@@ -98,6 +124,175 @@ func _build_wave_plan() -> void:
 			"delay": maxf(0.0, float(wave.get("delay", 0.0))),
 			"groups": groups
 		})
+
+	_ensure_selected_objective_reachability()
+	_frontload_selected_objective_monsters()
+
+
+func _ensure_selected_objective_reachability() -> void:
+	var required_counts: Dictionary = _get_required_objective_counts()
+	if required_counts.is_empty():
+		return
+
+	var planned_counts: Dictionary = _get_planned_monster_counts()
+	for monster_type_variant: Variant in required_counts.keys():
+		var monster_type_id: String = str(monster_type_variant)
+		var required_count: int = maxi(0, int(required_counts.get(monster_type_id, 0)))
+		var planned_count: int = maxi(0, int(planned_counts.get(monster_type_id, 0)))
+		var missing_count: int = required_count - planned_count
+		if missing_count <= 0:
+			continue
+		_inject_required_monster_group(monster_type_id, missing_count)
+
+
+func _get_required_objective_counts() -> Dictionary:
+	var required_counts: Dictionary = {}
+	var selected_objectives: Array[Dictionary] = SessionState.get_selected_objectives()
+	for objective: Dictionary in selected_objectives:
+		var monster_type_id: String = str(objective.get("monster_type", ""))
+		if monster_type_id.is_empty() or monster_type_id == "any":
+			continue
+
+		var target_count: int = maxi(0, int(objective.get("target", 0)))
+		var current_required: int = maxi(0, int(required_counts.get(monster_type_id, 0)))
+		required_counts[monster_type_id] = maxi(current_required, target_count)
+	return required_counts
+
+
+func _get_required_objective_monster_type_ids() -> Array[String]:
+	var required_type_ids: Array[String] = []
+	var selected_objectives: Array[Dictionary] = SessionState.get_selected_objectives()
+	for objective: Dictionary in selected_objectives:
+		var monster_type_id: String = str(objective.get("monster_type", ""))
+		if monster_type_id.is_empty() or monster_type_id == "any":
+			continue
+		if required_type_ids.has(monster_type_id):
+			continue
+		required_type_ids.append(monster_type_id)
+	return required_type_ids
+
+
+func _get_planned_monster_counts() -> Dictionary:
+	var planned_counts: Dictionary = {}
+	for carry_over_entry: Dictionary in _carry_over_entries:
+		_add_monster_count(planned_counts, str(carry_over_entry.get("monster_type_id", "")), 1)
+
+	for wave: Dictionary in _waves:
+		for group: Dictionary in wave.get("groups", []):
+			_add_monster_count(planned_counts, str(group.get("monster_type", "")), int(group.get("count", 0)))
+	return planned_counts
+
+
+func _inject_required_monster_group(monster_type_id: String, missing_count: int) -> void:
+	if monster_type_id.is_empty() or missing_count <= 0:
+		return
+
+	if _waves.is_empty():
+		_waves.append({
+			"delay": 0.0,
+			"groups": []
+		})
+
+	for wave_index: int in range(_waves.size() - 1, -1, -1):
+		var wave: Dictionary = _waves[wave_index]
+		var groups: Array = wave.get("groups", [])
+		for group_index: int in range(groups.size() - 1, -1, -1):
+			var group: Dictionary = groups[group_index]
+			if str(group.get("monster_type", "")) != monster_type_id:
+				continue
+
+			group["count"] = maxi(0, int(group.get("count", 0))) + missing_count
+			groups[group_index] = group
+			wave["groups"] = groups
+			_waves[wave_index] = wave
+			return
+
+	var final_wave_index: int = _waves.size() - 1
+	var final_wave: Dictionary = _waves[final_wave_index]
+	var final_groups: Array = final_wave.get("groups", [])
+	final_groups.append({
+		"monster_type": monster_type_id,
+		"count": missing_count,
+		"group_interval": SessionState.get_time_between_groups(SessionState.get_base_group_interval())
+	})
+	final_wave["groups"] = final_groups
+	_waves[final_wave_index] = final_wave
+
+
+func _frontload_selected_objective_monsters() -> void:
+	var objective_type_ids: Array[String] = _get_required_objective_monster_type_ids()
+	if objective_type_ids.is_empty():
+		return
+
+	if _waves.is_empty():
+		_waves.append({
+			"delay": 0.0,
+			"groups": []
+		})
+
+	var frontload_groups: Array[Dictionary] = []
+	for monster_type_id: String in objective_type_ids:
+		if _carry_over_contains_monster_type(monster_type_id):
+			continue
+		if not _pull_monster_from_future_group(monster_type_id):
+			continue
+		frontload_groups.append({
+			"monster_type": monster_type_id,
+			"count": 1,
+			"group_interval": SessionState.get_time_between_groups(SessionState.get_base_group_interval())
+		})
+
+	if frontload_groups.is_empty():
+		return
+
+	var first_wave: Dictionary = _waves[0]
+	var first_groups: Array = first_wave.get("groups", [])
+	var next_groups: Array[Dictionary] = []
+	for group: Dictionary in frontload_groups:
+		next_groups.append(group)
+	for group_variant: Variant in first_groups:
+		if typeof(group_variant) != TYPE_DICTIONARY:
+			continue
+		next_groups.append((group_variant as Dictionary).duplicate(true))
+	first_wave["delay"] = 0.0
+	first_wave["groups"] = next_groups
+	_waves[0] = first_wave
+
+
+func _add_monster_count(counts: Dictionary, monster_type_id: String, amount: int) -> void:
+	if monster_type_id.is_empty() or amount <= 0:
+		return
+	counts[monster_type_id] = maxi(0, int(counts.get(monster_type_id, 0))) + amount
+
+
+func _carry_over_contains_monster_type(monster_type_id: String) -> bool:
+	for carry_over_entry: Dictionary in _carry_over_entries:
+		if str(carry_over_entry.get("monster_type_id", "")) == monster_type_id:
+			return true
+	return false
+
+
+func _pull_monster_from_future_group(monster_type_id: String) -> bool:
+	for wave_index: int in range(_waves.size()):
+		var wave: Dictionary = _waves[wave_index]
+		var groups: Array = wave.get("groups", [])
+		for group_index: int in range(groups.size()):
+			var group: Dictionary = groups[group_index]
+			if str(group.get("monster_type", "")) != monster_type_id:
+				continue
+
+			var next_count: int = maxi(0, int(group.get("count", 0))) - 1
+			if next_count < 0:
+				continue
+			if next_count == 0:
+				groups.remove_at(group_index)
+			else:
+				group["count"] = next_count
+				groups[group_index] = group
+			wave["groups"] = groups
+			_waves[wave_index] = wave
+			return true
+	return false
 
 
 func _spawn_carry_over_monsters() -> void:
@@ -172,7 +367,7 @@ func _on_wave_spawn_completed() -> void:
 	group_timer.stop()
 
 	if _alive_monsters.is_empty():
-		_schedule_next_wave(_get_wave_delay(_current_wave_index + 1))
+		_schedule_next_wave(0.0)
 
 
 func _spawn_monster_entry(monster_type_id: String, carry_over_data: Dictionary) -> bool:
@@ -193,8 +388,10 @@ func _spawn_monster_entry(monster_type_id: String, carry_over_data: Dictionary) 
 
 	monster.global_position = _random_spawn_position()
 	monster.configure_from_runtime(monster_config, carry_over_data)
-	monster.spawn_position = monster.global_position
+	monster.spawn_global_position = monster.global_position
+	monster.walk_target_global_position = monster.global_position
 	_alive_monsters.append(monster)
+	monster.killed.connect(_on_spawned_monster_killed, CONNECT_ONE_SHOT)
 	monster.tree_exited.connect(_on_monster_tree_exited.bind(monster), CONNECT_ONE_SHOT)
 	_add_spawned_monster.call_deferred(monster)
 	return true
@@ -215,6 +412,7 @@ func _random_spawn_position() -> Vector2:
 
 func _on_monster_tree_exited(monster: Monster) -> void:
 	_alive_monsters.erase(monster)
+	_emit_monster_plan_changed()
 
 	if _waves_completed:
 		return
@@ -223,7 +421,12 @@ func _on_monster_tree_exited(monster: Monster) -> void:
 	if not _alive_monsters.is_empty():
 		return
 
-	_schedule_next_wave(_get_wave_delay(_current_wave_index + 1))
+	_schedule_next_wave(0.0)
+
+
+func _on_spawned_monster_killed(_monster: Monster) -> void:
+	_killed_monster_total += 1
+	_emit_monster_plan_changed()
 
 
 func _finish_all_waves() -> void:
@@ -253,3 +456,28 @@ func _add_spawned_monster(monster: Monster) -> void:
 
 	_monster_container.add_child(monster)
 	monster_spawned.emit(monster)
+	_emit_monster_plan_changed()
+
+
+func _recalculate_planned_monster_total() -> void:
+	_planned_monster_total = 0
+	for carry_over_entry: Dictionary in _carry_over_entries:
+		if str(carry_over_entry.get("monster_type_id", "")).is_empty():
+			continue
+		_planned_monster_total += 1
+
+	for wave: Dictionary in _waves:
+		for group: Dictionary in wave.get("groups", []):
+			_planned_monster_total += maxi(0, int(group.get("count", 0)))
+
+
+func _emit_monster_plan_changed() -> void:
+	monster_plan_changed.emit(get_remaining_monster_count(), get_alive_monster_count())
+
+
+func _append_monster_type_id(monster_type_ids: Array[String], monster_type_id: String) -> void:
+	if monster_type_id.is_empty():
+		return
+	if monster_type_ids.has(monster_type_id):
+		return
+	monster_type_ids.append(monster_type_id)

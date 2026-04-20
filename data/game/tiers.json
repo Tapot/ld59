@@ -1,122 +1,74 @@
 [
   {
-    "tier": 1,
-    "slots": 1,
-    "available_runes": ["summoning_call_1"],
-    "spawn_setup": {
-      "waves": [
-        { "delay": 0.0, "groups": [{ "monster_type": "mote", "count": 6 }] },
-        { "delay": 2.0, "groups": [{ "monster_type": "mote", "count": 8 }] },
-        { "delay": 2.4, "groups": [{ "monster_type": "mote", "count": 10 }] }
-      ]
-    }
+	"tier": 1,
+	"slots": 1,
+	"available_runes": ["damage_focus_1"],
+	"spawn_setup": {
+	  "waves": [
+		{ "delay": 0.0, "groups": [{ "monster_type": "mote", "count": 6 }] },
+		{ "delay": 1.8, "groups": [{ "monster_type": "mote", "count": 8 }] },
+		{ "delay": 2.2, "groups": [{ "monster_type": "mote", "count": 10 }] }
+	  ]
+	}
   },
   {
-    "tier": 2,
-    "slots": 1,
-    "available_runes": ["damage_focus_2", "summoning_call_2", "rune_of_runes_1"],
-    "spawn_setup": {
-      "waves": [
-        { "delay": 0.0, "groups": [{ "monster_type": "mote", "count": 8 }] },
-        { "delay": 2.2, "groups": [{ "monster_type": "mote", "count": 6 }, { "monster_type": "drifter", "count": 3, "group_interval": 0.4 }] },
-        { "delay": 2.6, "groups": [{ "monster_type": "drifter", "count": 6 }] }
-      ]
-    }
+	"tier": 2,
+	"slots": 2,
+	"available_runes": ["damage_focus_2", "life_ward_1", "rupture_kill_1"],
+	"spawn_setup": {
+	  "waves": [
+		{ "delay": 0.0, "groups": [{ "monster_type": "mote", "count": 10 }, { "monster_type": "drifter", "count": 3, "group_interval": 0.44 }, { "monster_type": "leech", "count": 1, "group_interval": 0.52 }] },
+		{ "delay": 1.9, "groups": [{ "monster_type": "drifter", "count": 5 }, { "monster_type": "leech", "count": 2, "group_interval": 0.42 }] },
+		{ "delay": 2.3, "groups": [{ "monster_type": "mote", "count": 8 }, { "monster_type": "drifter", "count": 4, "group_interval": 0.42 }, { "monster_type": "leech", "count": 2, "group_interval": 0.46 }] }
+	  ]
+	}
   },
   {
-    "tier": 3,
-    "slots": 2,
-    "available_runes": ["damage_focus_3", "life_ward_1", "rupture_kill_1", "rune_of_runes_2"],
-    "spawn_setup": {
-      "waves": [
-        { "delay": 0.0, "groups": [{ "monster_type": "mote", "count": 10 }] },
-        { "delay": 2.0, "groups": [{ "monster_type": "drifter", "count": 5 }, { "monster_type": "leech", "count": 2, "group_interval": 0.45 }] },
-        { "delay": 2.6, "groups": [{ "monster_type": "mote", "count": 8 }, { "monster_type": "drifter", "count": 4, "group_interval": 0.45 }] }
-      ]
-    }
+	"tier": 3,
+	"slots": 2,
+	"available_runes": ["damage_focus_3", "damage_hold_1", "life_ward_2", "rupture_shards_1"],
+	"spawn_setup": {
+	  "waves": [
+		{ "delay": 0.0, "groups": [{ "monster_type": "mote", "count": 12 }, { "monster_type": "drifter", "count": 4, "group_interval": 0.45 }, { "monster_type": "bulwark", "count": 1, "group_interval": 0.52 }, { "monster_type": "leech", "count": 2, "group_interval": 0.44 }] },
+		{ "delay": 2.0, "groups": [{ "monster_type": "bulwark", "count": 2 }, { "monster_type": "leech", "count": 3, "group_interval": 0.42 }, { "monster_type": "drifter", "count": 3, "group_interval": 0.46 }, { "monster_type": "mote", "count": 6, "group_interval": 0.38 }] },
+		{ "delay": 2.5, "groups": [{ "monster_type": "drifter", "count": 8 }, { "monster_type": "mote", "count": 10, "group_interval": 0.38 }, { "monster_type": "bulwark", "count": 2, "group_interval": 0.5 }, { "monster_type": "leech", "count": 3, "group_interval": 0.4 }] }
+	  ]
+	}
   },
   {
-    "tier": 4,
-    "slots": 3,
-    "available_runes": ["summoning_call_3", "damage_hold_1", "life_ward_2", "rune_of_runes_3", "rupture_shards_1"],
-    "spawn_setup": {
-      "waves": [
-        { "delay": 0.0, "groups": [{ "monster_type": "mote", "count": 12 }, { "monster_type": "drifter", "count": 4, "group_interval": 0.5 }] },
-        { "delay": 2.2, "groups": [{ "monster_type": "bulwark", "count": 2 }, { "monster_type": "leech", "count": 3, "group_interval": 0.45 }] },
-        { "delay": 2.8, "groups": [{ "monster_type": "drifter", "count": 8 }, { "monster_type": "mote", "count": 10, "group_interval": 0.4 }] }
-      ]
-    }
+	"tier": 4,
+	"slots": 3,
+	"available_runes": ["damage_stasis_1", "rupture_lifetime_1", "life_ward_3", "rupture_damage_1"],
+	"spawn_setup": {
+	  "waves": [
+		{ "delay": 0.0, "groups": [{ "monster_type": "drifter", "count": 10 }, { "monster_type": "reaver", "count": 3, "group_interval": 0.36 }, { "monster_type": "leech", "count": 4, "group_interval": 0.4 }, { "monster_type": "bulwark", "count": 2, "group_interval": 0.5 }] },
+		{ "delay": 2.2, "groups": [{ "monster_type": "bulwark", "count": 4 }, { "monster_type": "mote", "count": 14, "group_interval": 0.34 }, { "monster_type": "drifter", "count": 5, "group_interval": 0.4 }, { "monster_type": "leech", "count": 3, "group_interval": 0.38 }] },
+		{ "delay": 2.8, "groups": [{ "monster_type": "leech", "count": 5 }, { "monster_type": "drifter", "count": 8, "group_interval": 0.42 }, { "monster_type": "bulwark", "count": 3, "group_interval": 0.48 }] }
+	  ]
+	}
   },
   {
-    "tier": 5,
-    "slots": 4,
-    "available_runes": ["damage_stasis_1", "summoning_call_4", "rupture_range_1", "life_ward_2", "rune_of_runes_4"],
-    "spawn_setup": {
-      "waves": [
-        { "delay": 0.0, "groups": [{ "monster_type": "mote", "count": 14 }, { "monster_type": "leech", "count": 3, "group_interval": 0.45 }] },
-        { "delay": 2.4, "groups": [{ "monster_type": "bulwark", "count": 3 }, { "monster_type": "drifter", "count": 6, "group_interval": 0.5 }] },
-        { "delay": 3.0, "groups": [{ "monster_type": "leech", "count": 4 }, { "monster_type": "mote", "count": 12, "group_interval": 0.38 }] }
-      ]
-    }
+	"tier": 5,
+	"slots": 3,
+	"available_runes": ["damage_focus_4", "damage_stasis_1", "rupture_damage_1", "rupture_pierce_1", "life_ward_3"],
+	"spawn_setup": {
+	  "waves": [
+		{ "delay": 0.0, "groups": [{ "monster_type": "drifter", "count": 12 }, { "monster_type": "reaver", "count": 4, "group_interval": 0.32 }, { "monster_type": "mote", "count": 14, "group_interval": 0.34 }, { "monster_type": "bulwark", "count": 3, "group_interval": 0.46 }, { "monster_type": "leech", "count": 3, "group_interval": 0.34 }] },
+		{ "delay": 2.4, "groups": [{ "monster_type": "bulwark", "count": 6 }, { "monster_type": "leech", "count": 6, "group_interval": 0.34 }, { "monster_type": "reaver", "count": 2, "group_interval": 0.42 }] },
+		{ "delay": 3.0, "groups": [{ "monster_type": "mote", "count": 18 }, { "monster_type": "drifter", "count": 10, "group_interval": 0.3 }, { "monster_type": "leech", "count": 6, "group_interval": 0.3 }, { "monster_type": "bulwark", "count": 4, "group_interval": 0.4 }, { "monster_type": "reaver", "count": 3, "group_interval": 0.34 }] }
+	  ]
+	}
   },
   {
-    "tier": 6,
-    "slots": 5,
-    "available_runes": ["damage_focus_4", "life_ward_3", "rupture_pierce_1", "summoning_call_4", "rune_of_runes_5"],
-    "spawn_setup": {
-      "waves": [
-        { "delay": 0.0, "groups": [{ "monster_type": "drifter", "count": 10 }, { "monster_type": "leech", "count": 4, "group_interval": 0.42 }] },
-        { "delay": 2.4, "groups": [{ "monster_type": "bulwark", "count": 4 }, { "monster_type": "mote", "count": 14, "group_interval": 0.35 }] },
-        { "delay": 3.0, "groups": [{ "monster_type": "leech", "count": 5 }, { "monster_type": "drifter", "count": 8, "group_interval": 0.45 }] }
-      ]
-    }
-  },
-  {
-    "tier": 7,
-    "slots": 6,
-    "available_runes": ["summoning_call_5", "damage_focus_4", "rupture_pierce_1", "life_ward_3", "rune_of_runes_6"],
-    "spawn_setup": {
-      "waves": [
-        { "delay": 0.0, "groups": [{ "monster_type": "mote", "count": 16 }, { "monster_type": "drifter", "count": 8, "group_interval": 0.35 }] },
-        { "delay": 2.6, "groups": [{ "monster_type": "bulwark", "count": 5 }, { "monster_type": "leech", "count": 5, "group_interval": 0.4 }] },
-        { "delay": 3.2, "groups": [{ "monster_type": "mote", "count": 18 }, { "monster_type": "leech", "count": 4, "group_interval": 0.32 }] }
-      ]
-    }
-  },
-  {
-    "tier": 8,
-    "slots": 7,
-    "available_runes": ["damage_focus_5", "summoning_call_5", "rupture_bounce_1", "life_ward_3", "damage_stasis_1"],
-    "spawn_setup": {
-      "waves": [
-        { "delay": 0.0, "groups": [{ "monster_type": "drifter", "count": 12 }, { "monster_type": "mote", "count": 16, "group_interval": 0.32 }] },
-        { "delay": 2.8, "groups": [{ "monster_type": "bulwark", "count": 6 }, { "monster_type": "leech", "count": 6, "group_interval": 0.36 }] },
-        { "delay": 3.4, "groups": [{ "monster_type": "drifter", "count": 10 }, { "monster_type": "leech", "count": 6, "group_interval": 0.36 }] }
-      ]
-    }
-  },
-  {
-    "tier": 9,
-    "slots": 7,
-    "available_runes": ["damage_focus_5", "summoning_call_5", "rupture_bounce_1", "life_ward_3", "rupture_range_1"],
-    "spawn_setup": {
-      "waves": [
-        { "delay": 0.0, "groups": [{ "monster_type": "mote", "count": 18 }, { "monster_type": "drifter", "count": 10, "group_interval": 0.3 }] },
-        { "delay": 3.0, "groups": [{ "monster_type": "bulwark", "count": 7 }, { "monster_type": "leech", "count": 7, "group_interval": 0.34 }] },
-        { "delay": 3.6, "groups": [{ "monster_type": "mote", "count": 20 }, { "monster_type": "leech", "count": 8, "group_interval": 0.3 }] }
-      ]
-    }
-  },
-  {
-    "tier": 10,
-    "slots": 7,
-    "available_runes": ["damage_focus_5", "summoning_call_5", "rupture_bounce_1", "life_ward_3", "damage_stasis_1", "rupture_pierce_1"],
-    "spawn_setup": {
-      "waves": [
-        { "delay": 0.0, "groups": [{ "monster_type": "mote", "count": 20 }, { "monster_type": "drifter", "count": 12, "group_interval": 0.28 }] },
-        { "delay": 3.2, "groups": [{ "monster_type": "bulwark", "count": 8 }, { "monster_type": "leech", "count": 8, "group_interval": 0.32 }] },
-        { "delay": 3.8, "groups": [{ "monster_type": "mote", "count": 22 }, { "monster_type": "drifter", "count": 12, "group_interval": 0.28 }, { "monster_type": "leech", "count": 8, "group_interval": 0.28 }] }
-      ]
-    }
+	"tier": 6,
+	"slots": 3,
+	"available_runes": ["damage_focus_5", "rupture_shards_1", "damage_stasis_1", "rupture_lifetime_1", "rupture_damage_1", "rupture_pierce_1", "rupture_bounce_1", "life_ward_3"],
+	"spawn_setup": {
+	  "waves": [
+		{ "delay": 0.0, "groups": [{ "monster_type": "drifter", "count": 12 }, { "monster_type": "reaver", "count": 4, "group_interval": 0.3 }, { "monster_type": "mote", "count": 16, "group_interval": 0.32 }, { "monster_type": "bulwark", "count": 3, "group_interval": 0.44 }, { "monster_type": "leech", "count": 3, "group_interval": 0.34 }] },
+		{ "delay": 2.5, "groups": [{ "monster_type": "bulwark", "count": 7 }, { "monster_type": "leech", "count": 8, "group_interval": 0.32 }, { "monster_type": "drifter", "count": 6, "group_interval": 0.34 }, { "monster_type": "mote", "count": 10, "group_interval": 0.3 }, { "monster_type": "reaver", "count": 3, "group_interval": 0.36 }] },
+		{ "delay": 3.1, "groups": [{ "monster_type": "mote", "count": 20 }, { "monster_type": "drifter", "count": 12, "group_interval": 0.28 }, { "monster_type": "leech", "count": 8, "group_interval": 0.28 }, { "monster_type": "reaver", "count": 6, "group_interval": 0.28 }, { "monster_type": "bulwark", "count": 4, "group_interval": 0.38 }] }
+	  ]
+	}
   }
 ]

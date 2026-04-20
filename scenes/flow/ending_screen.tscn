@@ -80,6 +80,35 @@ text = "You Saved 0 People"
 horizontal_alignment = 1
 autowrap_mode = 3
 
+[node name="ResultsScroll" type="ScrollContainer" parent="Paper/Margin/Content"]
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+size_flags_vertical = 3
+scroll_horizontal_enabled = false
+
+[node name="ResultsContent" type="VBoxContainer" parent="Paper/Margin/Content/ResultsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="KilledSectionLabel" type="Label" parent="Paper/Margin/Content/ResultsScroll/ResultsContent"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Killed Monsters"
+
+[node name="KilledList" type="VBoxContainer" parent="Paper/Margin/Content/ResultsScroll/ResultsContent"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TasksSectionLabel" type="Label" parent="Paper/Margin/Content/ResultsScroll/ResultsContent"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Tasks"
+
+[node name="TasksList" type="VBoxContainer" parent="Paper/Margin/Content/ResultsScroll/ResultsContent"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
 [node name="ButtonsRow" type="HBoxContainer" parent="Paper/Margin/Content"]
 layout_mode = 2
 alignment = 1
@@ -88,12 +117,7 @@ theme_override_constants/separation = 12
 [node name="ActionButton" type="Button" parent="Paper/Margin/Content/ButtonsRow"]
 custom_minimum_size = Vector2(160, 52)
 layout_mode = 2
-text = "Begin Again"
-
-[node name="MenuButton" type="Button" parent="Paper/Margin/Content/ButtonsRow"]
-custom_minimum_size = Vector2(160, 52)
-layout_mode = 2
-text = "Main Menu"
+text = "OK"
 
 [node name="VolumeControls" parent="." instance=ExtResource("2")]
 layout_mode = 0

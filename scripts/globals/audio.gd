@@ -12,33 +12,33 @@ const BUTTON_PITCH_MIN: float = 0.92
 const BUTTON_PITCH_MAX: float = 1.08
 const BUTTON_VOLUME_BASE: float = -6.0
 
-const BUTTON_CLICK_SOUND: AudioStream = preload("res://audio/ld59_drop1.mp3")
+const BUTTON_CLICK_SOUND: AudioStream = preload("res://assets/audio/ld59_drop1.mp3")
 const MUSIC_MAIN_MENU: Array[AudioStream] = [
-	preload("res://audio/ld59_main_menu.mp3"),
+	preload("res://assets/audio/ld59_main_menu.mp3"),
 ]
 const MUSIC_BATTLE: Array[AudioStream] = [
-	preload("res://audio/ld59_battle_1.mp3"),
-	preload("res://audio/ld59_battle_2.mp3"),
-	preload("res://audio/ld59_battle_3.mp3"),
+	preload("res://assets/audio/ld59_battle_1.mp3"),
+	preload("res://assets/audio/ld59_battle_2.mp3"),
+	preload("res://assets/audio/ld59_battle_3.mp3"),
 ]
 const MUSIC_RUNE_ROOM: Array[AudioStream] = [
-	preload("res://audio/ld59_rune-room.mp3"),
+	preload("res://assets/audio/ld59_rune-room.mp3"),
 ]
-const MUSIC_POPULATION_DOWN: AudioStream = preload("res://audio/ld59_population_goes_down.mp3")
+const MUSIC_POPULATION_DOWN: AudioStream = preload("res://assets/audio/ld59_population_goes_down.mp3")
 const CROSSFADE_DURATION: float = 1.5
 const BUBBLE_SOUNDS: Array[AudioStream] = [
-	preload("res://audio/ld59_bubble1.mp3"),
-	preload("res://audio/ld59_bubble2.mp3"),
-	preload("res://audio/ld59_bubble3.mp3"),
-	preload("res://audio/ld59_bubble4.mp3"),
+	preload("res://assets/audio/ld59_bubble1.mp3"),
+	preload("res://assets/audio/ld59_bubble2.mp3"),
+	preload("res://assets/audio/ld59_bubble3.mp3"),
+	preload("res://assets/audio/ld59_bubble4.mp3"),
 ]
 const HIT_SOUNDS: Array[AudioStream] = [
-	preload("res://audio/ld59_hit1.mp3"),
-	preload("res://audio/ld59_hit2.mp3"),
+	preload("res://assets/audio/ld59_hit1.mp3"),
+	preload("res://assets/audio/ld59_hit2.mp3"),
 ]
 const POWERUP_SOUNDS: Array[AudioStream] = [
-	preload("res://audio/ld59_powerup1.mp3"),
-	preload("res://audio/ld59_powerup2.mp3"),
+	preload("res://assets/audio/ld59_powerup1.mp3"),
+	preload("res://assets/audio/ld59_powerup2.mp3"),
 ]
 
 var _button_sfx: AudioStreamPlayer

@@ -29,7 +29,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	var distance_step: float = speed * delta
-	position += direction * distance_step
+	global_position += direction * distance_step
 	_maybe_bounce_from_bounds()
 	_distance_travelled += distance_step
 
@@ -48,7 +48,7 @@ func setup(
 	tint: Color,
 	source: Monster,
 ) -> void:
-	position = start_position
+	global_position = start_position
 	direction = travel_direction.normalized()
 	if direction == Vector2.ZERO:
 		direction = Vector2.RIGHT
@@ -112,14 +112,14 @@ func _maybe_bounce_from_bounds() -> void:
 	var max_y: float = travel_bounds_position.y + travel_bounds_size.y - collision_radius
 	var did_bounce: bool = false
 
-	if position.x < min_x or position.x > max_x:
+	if global_position.x < min_x or global_position.x > max_x:
 		direction.x *= -1.0
-		position.x = clampf(position.x, min_x, max_x)
+		global_position.x = clampf(global_position.x, min_x, max_x)
 		did_bounce = true
 
-	if position.y < min_y or position.y > max_y:
+	if global_position.y < min_y or global_position.y > max_y:
 		direction.y *= -1.0
-		position.y = clampf(position.y, min_y, max_y)
+		global_position.y = clampf(global_position.y, min_y, max_y)
 		did_bounce = true
 
 	if not did_bounce:

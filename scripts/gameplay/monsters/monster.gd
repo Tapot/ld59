@@ -16,6 +16,7 @@ enum MonsterState {
 @export var lifetime_range_seconds: Vector2 = Vector2(5.0, 10.0)
 @export var move_speed: float = 210.0
 @export var roam_radius: float = 220.0
+@export var seek_center_jitter_radius: float = 90.0
 @export var idle_time_range: Vector2 = Vector2(1.0, 2.8)
 @export var walk_time_range: Vector2 = Vector2(0.2, 0.45)
 @export var expire_fade_duration: float = 0.3
@@ -42,8 +43,8 @@ const STATUS_BAR_WIDTH: float = 72.0
 var hp: float = 0.0
 var max_lifetime: float = 0.0
 var remaining_lifetime: float = 0.0
-var spawn_position: Vector2 = Vector2.ZERO
-var walk_target: Vector2 = Vector2.ZERO
+var spawn_global_position: Vector2 = Vector2.ZERO
+var walk_target_global_position: Vector2 = Vector2.ZERO
 var is_walking: bool = false
 var monster_type_id: String = "drifter"
 var monster_title: String = "Drifter"
@@ -52,6 +53,7 @@ var behavior_type: String = "wander"
 
 var _sprite_scale: float = 0.32
 var _sprite_tint: Color = Color.WHITE
+var _sprite_texture_path: String = ""
 var _collision_radius: float = 26.0
 var _configured_start_hp: float = -1.0
 var _configured_start_remaining_lifetime: float = -1.0
@@ -75,10 +77,12 @@ func configure_from_runtime(monster_config: Dictionary, carry_over_data: Diction
 	drain_multiplier = maxf(0.1, float(monster_config.get("drain_multiplier", 1.0)))
 	behavior_type = str(monster_config.get("behavior_type", "wander"))
 	roam_radius = maxf(80.0, float(monster_config.get("roam_radius", roam_radius)))
+	seek_center_jitter_radius = maxf(0.0, float(monster_config.get("seek_center_jitter_radius", seek_center_jitter_radius)))
 	idle_time_range = _vector2_from_json(monster_config.get("idle_time_range", [idle_time_range.x, idle_time_range.y]), idle_time_range)
 	walk_time_range = _vector2_from_json(monster_config.get("walk_time_range", [walk_time_range.x, walk_time_range.y]), walk_time_range)
 	_sprite_scale = float(monster_config.get("sprite_scale", _sprite_scale))
 	_sprite_tint = _color_from_json(monster_config.get("sprite_tint", [1.0, 1.0, 1.0, 1.0]), Color.WHITE)
+	_sprite_texture_path = str(monster_config.get("sprite_texture_path", ""))
 	_collision_radius = maxf(4.0, float(monster_config.get("collision_radius", _collision_radius)))
 
 	_configured_start_hp = float(carry_over_data.get("hp", -1.0))
@@ -93,10 +97,12 @@ func _ready() -> void:
 		remaining_lifetime = clampf(_configured_start_remaining_lifetime, 0.1, max_lifetime)
 	else:
 		remaining_lifetime = max_lifetime
-	spawn_position = global_position
-	walk_target = global_position
+	spawn_global_position = global_position
+	walk_target_global_position = global_position
 	is_walking = false
+	_apply_sprite_texture()
 	sprite.scale = Vector2.ONE * _sprite_scale
+	sprite.offset = Vector2.ZERO
 	sprite.modulate = _sprite_tint
 	var circle_shape: CircleShape2D = collision_shape.shape as CircleShape2D
 	if circle_shape != null:
@@ -131,9 +137,9 @@ func _physics_process(delta: float) -> void:
 	if not is_walking:
 		return
 
-	var to_target: Vector2 = walk_target - global_position
+	var to_target: Vector2 = walk_target_global_position - global_position
 	if to_target.length() <= move_speed * delta:
-		global_position = walk_target
+		global_position = walk_target_global_position
 		is_walking = false
 		_schedule_idle()
 		return
@@ -212,7 +218,7 @@ func _on_walk_timer_timeout() -> void:
 		_schedule_idle()
 		return
 
-	walk_target = _pick_walk_target()
+	walk_target_global_position = _pick_walk_target_global_position()
 	is_walking = true
 	walk_timer.start(randf_range(walk_time_range.x, walk_time_range.y))
 
@@ -316,14 +322,14 @@ func _update_burn_effect(delta: float) -> void:
 
 	if _fx_burn_intensity <= 0.0:
 		sprite.self_modulate = Color.WHITE
-		sprite.position = Vector2.ZERO
+		sprite.offset = Vector2.ZERO
 		return
 
 	var shake_offset: Vector2 = Vector2(
 		randf_range(-FX_SHAKE_MAX_OFFSET, FX_SHAKE_MAX_OFFSET),
 		randf_range(-FX_SHAKE_MAX_OFFSET, FX_SHAKE_MAX_OFFSET)
 	) * _fx_burn_intensity
-	sprite.position = shake_offset
+	sprite.offset = shake_offset
 
 	var pulse: float = (1.0 + sin(Time.get_ticks_msec() * 0.001 * FX_BURN_PULSE_SPEED * TAU)) * 0.5
 	var white_amount: float = _fx_burn_intensity * (FX_BURN_MAX_WHITE - FX_BURN_PULSE_AMOUNT + pulse * FX_BURN_PULSE_AMOUNT)
@@ -331,23 +337,26 @@ func _update_burn_effect(delta: float) -> void:
 	sprite.self_modulate = Color(color_scale, color_scale, color_scale, 1.0)
 
 
-func _pick_walk_target() -> Vector2:
+func _pick_walk_target_global_position() -> Vector2:
 	if behavior_type == "seek_center":
-		var center: Vector2 = (Globals.MONSTERS_FIELD_MIN + Globals.MONSTERS_FIELD_MAX) * 0.5
-		var offset: Vector2 = Vector2(randf_range(-90.0, 90.0), randf_range(-90.0, 90.0))
+		var center: Vector2 = _get_move_bounds_center()
+		var offset: Vector2 = Vector2(
+			randf_range(-seek_center_jitter_radius, seek_center_jitter_radius),
+			randf_range(-seek_center_jitter_radius, seek_center_jitter_radius)
+		)
 		return _clamp_to_move_bounds(center + offset)
 
 	var direction: Vector2 = _pick_walk_direction()
 	var distance: float = randf_range(roam_radius * 0.55, roam_radius)
 	var desired_target: Vector2 = global_position + direction * distance
-	var offset_from_spawn: Vector2 = desired_target - spawn_position
+	var offset_from_spawn: Vector2 = desired_target - spawn_global_position
 	if offset_from_spawn.length() > roam_radius:
 		offset_from_spawn = offset_from_spawn.normalized() * roam_radius
-	return _clamp_to_move_bounds(spawn_position + offset_from_spawn)
+	return _clamp_to_move_bounds(spawn_global_position + offset_from_spawn)
 
 
 func _pick_walk_direction() -> Vector2:
-	var current_offset: Vector2 = global_position - spawn_position
+	var current_offset: Vector2 = global_position - spawn_global_position
 	match behavior_type:
 		"skitter":
 			if current_offset.length() > 8.0 and randf() < 0.72:
@@ -361,6 +370,10 @@ func _pick_walk_direction() -> Vector2:
 			if current_offset.length() > 8.0 and randf() < 0.8:
 				return current_offset.normalized().rotated(randf_range(-0.25, 0.25))
 			return Vector2.from_angle(randf_range(0.0, TAU))
+
+
+func _get_move_bounds_center() -> Vector2:
+	return (Globals.MONSTERS_FIELD_MIN + Globals.MONSTERS_FIELD_MAX) * 0.5
 
 
 func _clamp_to_move_bounds(target_position: Vector2) -> Vector2:
@@ -379,6 +392,19 @@ func _vector2_from_json(value: Variant, fallback: Vector2) -> Vector2:
 		return fallback
 
 	return Vector2(float(values[0]), float(values[1]))
+
+
+func _apply_sprite_texture() -> void:
+	if _sprite_texture_path.is_empty():
+		return
+
+	var image_path: String = ProjectSettings.globalize_path(_sprite_texture_path)
+	var image: Image = Image.load_from_file(image_path)
+	if image == null or image.is_empty():
+		push_warning("Could not load monster sprite from %s" % image_path)
+		return
+
+	sprite.texture = ImageTexture.create_from_image(image)
 
 
 func _color_from_json(value: Variant, fallback: Color) -> Color:

@@ -20,14 +20,13 @@ const BUBBLE_VOLUME_RANGE: float = 1.5
 @onready var player_attack: PlayerAttack = $OuterFrame/PlayfieldFrame/World/PlayerAttack
 @onready var drain_label: Label = $OuterFrame/TopBar/TopBarMargin/TopBarContent/DrainLabel
 @onready var tier_label: Label = $OuterFrame/TopBar/TopBarMargin/TopBarContent/TierLabel
-@onready var objectives_list: VBoxContainer = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/ObjectivesScroll/ObjectivesList
-@onready var objectives_title: Label = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/TitleLabel
-@onready var status_label: Label = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/StatusLabel
+@onready var objectives_scroll: ObjectivesScrollWidget = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/ObjectivesScroll
 @onready var exit_button: Button = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/ExitButton
 @onready var population_counter = $PopulationCounter
 @onready var _bubble_sfx_pool: Array[AudioStreamPlayer] = [$BubbleSfx1, $BubbleSfx2, $BubbleSfx3]
 
 var _kill_count: int = 0
+var _kill_counts_by_type: Dictionary = {}
 var _monsters: Array[Monster] = []
 var _all_waves_completed: bool = false
 var _run_transition_started: bool = false
@@ -40,7 +39,6 @@ func _ready() -> void:
 	Audio.play_music("battle", Audio.MUSIC_BATTLE)
 	_apply_rune_effects()
 	_refresh_population_ui(SessionState.get_population_current(), SessionState.get_current_drain_per_second())
-	_refresh_objectives_ui()
 
 	monster_spawner.monster_spawned.connect(_on_monster_spawned)
 	monster_spawner.all_waves_completed.connect(_on_all_waves_completed)
@@ -49,6 +47,7 @@ func _ready() -> void:
 	exit_button.disabled = not SessionState.is_manual_exit_enabled()
 	exit_button.pressed.connect(_on_exit_button_pressed)
 	monster_spawner.begin_run()
+	_refresh_objectives_ui()
 
 
 func _physics_process(delta: float) -> void:
@@ -71,7 +70,6 @@ func add_monster(monster: Monster) -> void:
 
 
 func _apply_rune_effects() -> void:
-	player_attack.attack_input_action = SessionState.get_run_attack_input_action()
 	player_attack.attack_radius = SessionState.get_attack_radius(player_attack.attack_radius)
 	player_attack.damage_per_second = SessionState.get_damage_per_second(player_attack.damage_per_second)
 	player_attack.lifetime_slow_scale = SessionState.get_lifetime_slow_scale(player_attack.lifetime_slow_scale)
@@ -83,32 +81,30 @@ func _apply_rune_effects() -> void:
 func _on_monster_spawned(monster: Monster) -> void:
 	add_monster(monster)
 	_spawn_monster_burst(monster, BurstTrigger.SPAWN)
-	_refresh_status_label()
 
 
 func _on_all_waves_completed() -> void:
 	_all_waves_completed = true
-	_refresh_status_label()
 	_maybe_finish_run_naturally()
 
 
 func _on_monster_killed(monster: Monster) -> void:
 	_kill_count += 1
+	_kill_counts_by_type[monster.monster_type_id] = int(_kill_counts_by_type.get(monster.monster_type_id, 0)) + 1
 	SessionState.register_monster_kill(monster.monster_type_id)
 	_spawn_monster_burst(monster, BurstTrigger.KILL)
 	_play_bubble_sfx()
-	_refresh_status_label()
+	if SessionState.are_selected_rune_objectives_complete():
+		_finish_run("completed")
 
 
 func _on_monster_expired(monster: Monster) -> void:
 	SessionState.add_lingering_monster(monster.to_lingering_data())
 	_spawn_monster_burst(monster, BurstTrigger.EXPIRE)
-	_refresh_status_label()
 
 
 func _on_monster_tree_exited(monster: Monster) -> void:
 	_monsters.erase(monster)
-	_refresh_status_label()
 	_maybe_finish_run_naturally()
 
 
@@ -132,10 +128,10 @@ func _finish_run(outcome: String) -> void:
 		return
 
 	_run_transition_started = true
-	if outcome != "natural":
+	if outcome == "manual_exit" or outcome == "loss":
 		_capture_surviving_monsters()
 
-	var result: Dictionary = SessionState.finish_run(outcome, _kill_count)
+	var result: Dictionary = SessionState.finish_run(outcome, _kill_count, _kill_counts_by_type)
 	get_tree().change_scene_to_file(str(result.get("next_scene_path", "res://scenes/flow/upgrades_screen.tscn")))
 
 
@@ -156,47 +152,16 @@ func _refresh_population_ui(current_population: int, drain_per_second: int) -> v
 
 
 func _refresh_objectives_ui() -> void:
-	for child: Node in objectives_list.get_children():
-		child.queue_free()
-
 	var objectives: Array[Dictionary] = SessionState.get_selected_objectives()
-	objectives_title.text = "Rune Objectives"
+	var planned_monster_type_ids: Array[String] = monster_spawner.get_planned_monster_type_ids()
 	if objectives.is_empty():
-		status_label.text = "No runes selected."
+		objectives_scroll.set_objectives([], planned_monster_type_ids)
 		return
 
-	for objective: Dictionary in objectives:
-		var objective_panel: PanelContainer = PanelContainer.new()
-		var content: VBoxContainer = VBoxContainer.new()
-		var title: Label = Label.new()
-		var progress: Label = Label.new()
-		var state: Label = Label.new()
-
-		title.text = "%s [%s]" % [str(objective.get("title", "")), str(objective.get("family", ""))]
-		progress.text = "Kill %d %s: %d / %d" % [
-			int(objective.get("target", 0)),
-			str(objective.get("monster_title", "")),
-			int(objective.get("current", 0)),
-			int(objective.get("target", 0))
-		]
-		state.text = "Complete" if bool(objective.get("complete", false)) else "Incomplete"
-		content.add_child(title)
-		content.add_child(progress)
-		content.add_child(state)
-		objective_panel.add_child(content)
-		objectives_list.add_child(objective_panel)
-
-	_refresh_status_label()
+	objectives_scroll.set_objectives(objectives, planned_monster_type_ids)
 
 
-func _refresh_status_label() -> void:
-	if SessionState.are_selected_rune_objectives_complete():
-		status_label.text = "Objectives complete. Clear the field or exit to resolve the tier."
-		return
-	if _all_waves_completed:
-		status_label.text = "No new waves remain. Finish the lingering monsters."
-		return
-	status_label.text = "Monsters alive: %d" % _count_alive_monsters()
+
 
 
 func _count_alive_monsters() -> int:
@@ -273,6 +238,7 @@ func _spawn_monster_burst(monster: Monster, trigger: int) -> void:
 			projectile_range = 220.0
 			projectile_tint = Color(1.0, 0.68, 0.18, 1.0)
 
+	projectile_damage += SessionState.get_monster_burst_damage_bonus()
 	projectile_range += SessionState.get_monster_burst_range_bonus()
 	_spawn_projectile_burst(
 		monster,
@@ -299,7 +265,7 @@ func _spawn_projectile_burst(
 	if projectile_count <= 0:
 		return
 
-	var origin: Vector2 = projectile_container.to_local(source_monster.global_position)
+	var origin: Vector2 = source_monster.global_position
 	var preferred_direction: Vector2 = _get_burst_target_direction(source_monster)
 	if projectile_count == 1:
 		if preferred_direction == Vector2.ZERO:
@@ -350,13 +316,13 @@ func _spawn_burst_projectile(
 	projectile_bounces: int,
 	projectile_tint: Color
 ) -> void:
-	var projectile: MonsterProjectile = MONSTER_PROJECTILE_SCENE.instantiate() as MonsterProjectile
-	if projectile == null:
+	if projectile_container == null or not is_instance_valid(projectile_container):
 		return
 
 	var start_position: Vector2 = origin + direction * 24.0
 	var speed_variation: float = randf_range(0.92, 1.08)
-	projectile.setup(
+	_spawn_burst_projectile_deferred.call_deferred(
+		source_monster,
 		start_position,
 		direction,
 		projectile_damage,
@@ -364,20 +330,40 @@ func _spawn_burst_projectile(
 		projectile_range,
 		projectile_pierces,
 		projectile_bounces,
+		projectile_tint
+	)
+
+
+func _spawn_burst_projectile_deferred(
+	source_monster: Monster,
+	start_position: Vector2,
+	direction: Vector2,
+	projectile_damage: float,
+	projectile_speed: float,
+	projectile_range: float,
+	projectile_pierces: int,
+	projectile_bounces: int,
+	projectile_tint: Color
+) -> void:
+	if projectile_container == null or not is_instance_valid(projectile_container):
+		return
+
+	var projectile: MonsterProjectile = MONSTER_PROJECTILE_SCENE.instantiate() as MonsterProjectile
+	if projectile == null:
+		return
+
+	projectile_container.add_child(projectile)
+	projectile.setup(
+		start_position,
+		direction,
+		projectile_damage,
+		projectile_speed,
+		projectile_range,
+		projectile_pierces,
+		projectile_bounces,
 		projectile_tint,
 		source_monster
 	)
-	Callable(self, "_add_burst_projectile_to_container").call_deferred(projectile)
-
-
-func _add_burst_projectile_to_container(projectile: MonsterProjectile) -> void:
-	if projectile == null:
-		return
-	if projectile_container == null or not is_instance_valid(projectile_container):
-		if is_instance_valid(projectile):
-			projectile.queue_free()
-		return
-	projectile_container.add_child(projectile)
 
 
 func _get_burst_target_direction(source_monster: Monster) -> Vector2:

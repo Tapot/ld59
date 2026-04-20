@@ -1,6 +1,6 @@
 {
   "base_drain": 1,
-  "time_scaling": 0.015,
-  "rune_scaling": 0.2,
-  "monster_scaling": 0.08
+  "time_scaling": 0.018,
+  "rune_scaling": 0.0,
+  "monster_scaling": 0.085
 }
