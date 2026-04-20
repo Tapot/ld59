@@ -46,7 +46,7 @@ func _refresh_screen() -> void:
 
 func _refresh_header() -> void:
 	var last_summary: Dictionary = SessionState.get_last_run_summary()
-	var summary_text: String = "Choose the runes for this tier. Selected rune effects apply in the next core run."
+	var summary_text: String = "Choose the runes for this tier and fill every slot to begin the next core run."
 	if SessionState.is_selection_locked():
 		summary_text = "Loadout locked. Finish every selected rune objective to unlock the next tier."
 	elif not last_summary.is_empty():

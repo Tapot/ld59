@@ -220,7 +220,7 @@ func toggle_rune_selection(rune_id: String) -> void:
 func is_selection_valid() -> bool:
 	if _selected_rune_ids.is_empty():
 		return false
-	if _selected_rune_ids.size() > _unlocked_slots:
+	if _selected_rune_ids.size() != _unlocked_slots:
 		return false
 
 	var allowed_ids: Dictionary = {}
