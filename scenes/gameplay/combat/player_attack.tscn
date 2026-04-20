@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bycag8pe2mmrj" path="res://scripts/gameplay/combat/player_attack.gd" id="1_j4upo"]
 [ext_resource type="Script" path="res://scripts/gameplay/combat/burning_dot.gd" id="2_burn"]
+[ext_resource type="Script" path="res://scripts/gameplay/combat/burn_sound.gd" id="3_burnsnd"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_q1an7"]
 radius = 20.0
@@ -20,11 +21,8 @@ closed = true
 width = 2.0
 default_color = Color(0.35, 0.9, 1, 0.95)
 
-[node name="HitSfx1" type="AudioStreamPlayer" parent="." unique_id=778700302]
-volume_db = -14.0
-
-[node name="HitSfx2" type="AudioStreamPlayer" parent="." unique_id=1413374508]
-volume_db = -14.0
-
 [node name="BurningDot" type="Node2D" parent="."]
 script = ExtResource("2_burn")
+
+[node name="BurnSound" type="Node" parent="."]
+script = ExtResource("3_burnsnd")

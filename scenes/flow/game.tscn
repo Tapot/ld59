@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://bob6uo14lhfqv" path="res://scenes/ui/panels/side_panel.tscn" id="4"]
 [ext_resource type="PackedScene" uid="uid://doone2xa8ro2g" path="res://scenes/ui/widgets/volume_controls.tscn" id="5"]
 [ext_resource type="PackedScene" uid="uid://dkwhou2b7f12e" path="res://scenes/ui/widgets/population_counter.tscn" id="6"]
+[ext_resource type="Script" path="res://scripts/gameplay/combat/burn_ground.gd" id="7_burnground"]
 
 [sub_resource type="StyleBoxFlat" id="1"]
 bg_color = Color(0.14, 0.14, 0.14, 1)
@@ -124,6 +125,9 @@ position = Vector2(4, 4)
 [node name="Monsters" type="Node2D" parent="OuterFrame/PlayfieldFrame/World" unique_id=866953177]
 
 [node name="Projectiles" type="Node2D" parent="OuterFrame/PlayfieldFrame/World" unique_id=1783897301]
+
+[node name="BurnGround" type="Node2D" parent="OuterFrame/PlayfieldFrame/World" groups=["burn_ground"]]
+script = ExtResource("7_burnground")
 
 [node name="MonsterSpawner" parent="OuterFrame/PlayfieldFrame/World" unique_id=1991069300 instance=ExtResource("2")]
 monster_container_path = NodePath("../Monsters")

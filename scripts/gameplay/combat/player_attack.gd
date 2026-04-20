@@ -3,11 +3,6 @@ extends Area2D
 
 
 const ATTACKABLE_MONSTERS_GROUP: String = "attackable_monsters"
-const HIT_PITCH_MIN: float = 0.88
-const HIT_PITCH_MAX: float = 1.12
-const HIT_COOLDOWN: float = 0.15
-const HIT_VOLUME_BASE: float = -14.0
-const HIT_VOLUME_RANGE: float = 1.5
 const INACTIVE_COLOR: Color = Color(0.58, 0.86, 0.94, 0.35)
 const ACTIVE_COLOR: Color = Color(1.0, 0.84, 0.32, 0.45)
 
@@ -21,12 +16,12 @@ const ACTIVE_COLOR: Color = Color(1.0, 0.84, 0.32, 0.45)
 @onready var attack_range: CollisionShape2D = $AttackRange
 @onready var cursor_ring: Line2D = $CursorRing
 @onready var burning_dot: BurningDot = $BurningDot
-@onready var _hit_sfx_pool: Array[AudioStreamPlayer] = [$HitSfx1, $HitSfx2]
+@onready var burn_sound: BurnSound = $BurnSound
 
 var _targeted_monsters: Array[Monster] = []
 var _field_effect_monsters: Dictionary = {}
 var _is_active_in_bounds: bool = false
-var _hit_sfx_cooldown: float = 0.0
+var _burn_ground: BurnGround
 
 
 func _ready() -> void:
@@ -59,16 +54,14 @@ func _process(_delta: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if _hit_sfx_cooldown > 0.0:
-		_hit_sfx_cooldown -= delta
-
 	if not _is_active_in_bounds :
 		_release_all_field_effects()
+		if burn_sound != null:
+			burn_sound.stop_all()
 		return
 
 	_refresh_targets_from_distance()
 	var damage_amount: float = damage_per_second * delta
-	var dealt_damage: bool = false
 	var hit_count: int = 0
 	for monster: Monster in _targeted_monsters:
 		if not is_instance_valid(monster):
@@ -76,14 +69,16 @@ func _physics_process(delta: float) -> void:
 
 		_apply_field_effects(monster)
 		monster.take_damage(damage_amount)
-		dealt_damage = true
 		hit_count += 1
 
-	if dealt_damage and _hit_sfx_cooldown <= 0.0:
-		_play_hit_sfx()
-		_hit_sfx_cooldown = HIT_COOLDOWN
+	# Trail residue: cursor always leaves a faint mark while active in bounds;
+	# damage makes it hotter / more persistent.
+	var residue_amount: float = damage_amount * float(hit_count) + damage_per_second * delta * 0.1
+	_record_burn_ground(residue_amount)
+	if burn_sound != null:
+		burn_sound.report_tick(hit_count, delta)
 	if burning_dot != null:
-		if dealt_damage:
+		if hit_count > 0:
 			burning_dot.pulse_from_hit(hit_count)
 		else:
 			burning_dot.clear_targets()
@@ -169,22 +164,10 @@ func _release_all_field_effects() -> void:
 			monster.pop_motion_lock()
 
 
-func _play_hit_sfx() -> void:
-	if not is_inside_tree():
+func _record_burn_ground(total_damage: float) -> void:
+	if _burn_ground == null or not is_instance_valid(_burn_ground):
+		var node: Node = get_tree().get_first_node_in_group("burn_ground")
+		_burn_ground = node as BurnGround
+	if _burn_ground == null:
 		return
-
-	var hit_sounds: Array[AudioStream] = Audio.HIT_SOUNDS
-	for player: AudioStreamPlayer in _hit_sfx_pool:
-		if player == null:
-			continue
-		if not is_instance_valid(player):
-			continue
-		if not player.is_inside_tree():
-			continue
-		if not player.playing:
-			player.stream = hit_sounds[randi() % hit_sounds.size()]
-			player.pitch_scale = randf_range(HIT_PITCH_MIN, HIT_PITCH_MAX)
-			var base_volume_db: float = HIT_VOLUME_BASE + randf_range(-HIT_VOLUME_RANGE, HIT_VOLUME_RANGE)
-			player.volume_db = Audio.get_sfx_volume_db(base_volume_db)
-			player.play()
-			return
+	_burn_ground.record_damage(global_position, total_damage)
