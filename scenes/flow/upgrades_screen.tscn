@@ -4,6 +4,9 @@
 [ext_resource type="PackedScene" uid="uid://doone2xa8ro2g" path="res://scenes/ui/widgets/volume_controls.tscn" id="2"]
 [ext_resource type="PackedScene" uid="uid://dkwhou2b7f12e" path="res://scenes/ui/widgets/population_counter.tscn" id="3"]
 [ext_resource type="Texture2D" uid="uid://hjlw60ydd6x5" path="res://assets/images/runes_back.png" id="4"]
+[ext_resource type="Texture2D" uid="uid://bdtmr1x8yjvbj" path="res://assets/images/ui/button_normal.png" id="5_btnn"]
+[ext_resource type="Texture2D" uid="uid://ceclwb12p2q68" path="res://assets/images/ui/button_hover.png" id="6_btnh"]
+[ext_resource type="FontFile" uid="uid://kxq0dfj5rsu8" path="res://assets/fonts/Jolly_Lodger/JollyLodger-Regular.ttf" id="7_font"]
 
 [sub_resource type="StyleBoxFlat" id="1"]
 bg_color = Color(0.93, 0.89, 0.77, 1)
@@ -16,6 +19,12 @@ corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxTexture" id="2"]
+texture = ExtResource("5_btnn")
+
+[sub_resource type="StyleBoxTexture" id="3"]
+texture = ExtResource("6_btnh")
 
 [node name="RuneSelection" type="Control" unique_id=65503313]
 layout_mode = 3
@@ -71,12 +80,14 @@ theme_override_constants/separation = 8
 
 [node name="TierLabel" type="Label" parent="Paper/Margin/Content/Header" unique_id=1366335464]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("7_font")
 theme_override_font_sizes/font_size = 28
 text = "Tier 1 / 10"
 
 [node name="SummaryLabel" type="Label" parent="Paper/Margin/Content/Header" unique_id=1872230011]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("7_font")
 theme_override_font_sizes/font_size = 16
 text = "Choose the runes that will carry this tier."
 autowrap_mode = 3
@@ -88,6 +99,7 @@ theme_override_constants/separation = 24
 [node name="SlotLabel" type="Label" parent="Paper/Margin/Content/StatusRow" unique_id=2017228627]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("7_font")
 text = "Slots: 0 / 1"
 horizontal_alignment = 2
 
@@ -100,11 +112,23 @@ alignment = 2
 custom_minimum_size = Vector2(160, 52)
 layout_mode = 2
 disabled = true
+theme_override_fonts/font = ExtResource("7_font")
+theme_override_styles/normal = SubResource("2")
+theme_override_styles/pressed = SubResource("3")
+theme_override_styles/hover = SubResource("3")
+theme_override_styles/focus = SubResource("3")
+theme_override_styles/disabled = SubResource("2")
 text = "Summon"
 
 [node name="MainMenuButton" type="Button" parent="Paper/Margin/Content/ButtonsRow" unique_id=80962284]
 custom_minimum_size = Vector2(160, 52)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("7_font")
+theme_override_styles/normal = SubResource("2")
+theme_override_styles/pressed = SubResource("3")
+theme_override_styles/hover = SubResource("3")
+theme_override_styles/focus = SubResource("3")
+theme_override_styles/disabled = SubResource("2")
 text = "Main Menu"
 
 [node name="CardsScroll" type="ScrollContainer" parent="Paper/Margin/Content" unique_id=1749251545]

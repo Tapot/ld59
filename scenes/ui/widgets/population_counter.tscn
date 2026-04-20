@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://dkwhou2b7f12e"]
 
 [ext_resource type="Script" uid="uid://dhs78bshwm7wy" path="res://scripts/ui/widgets/population_counter.gd" id="1"]
+[ext_resource type="FontFile" uid="uid://kxq0dfj5rsu8" path="res://assets/fonts/Jolly_Lodger/JollyLodger-Regular.ttf" id="2_font"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_1"]
 bg_color = Color(0.04, 0.04, 0.04, 0.92)
@@ -48,11 +49,13 @@ alignment = 1
 
 [node name="TitleLabel" type="Label" parent="Row" unique_id=1077055781]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 32
 text = "Population: "
 horizontal_alignment = 2
 
 [node name="ValueLabel" type="Label" parent="Row" unique_id=1772505499]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 42
 text = "0"

@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://doone2xa8ro2g"]
 
 [ext_resource type="Script" uid="uid://dcg8g2oyw8ch2" path="res://scripts/ui/widgets/volume_controls.gd" id="1_3a3yk"]
+[ext_resource type="FontFile" uid="uid://kxq0dfj5rsu8" path="res://assets/fonts/Jolly_Lodger/JollyLodger-Regular.ttf" id="2_font"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_volume_panel"]
 bg_color = Color(0.08, 0.08, 0.08, 0.94)
@@ -15,12 +16,13 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [node name="VolumeControls" type="PanelContainer" unique_id=1775720380]
-custom_minimum_size = Vector2(228, 0)
+custom_minimum_size = Vector2(228, 56)
 theme_override_styles/panel = SubResource("StyleBoxFlat_volume_panel")
 script = ExtResource("1_3a3yk")
 
 [node name="Margin" type="MarginContainer" parent="." unique_id=1902371361]
 layout_mode = 2
+size_flags_vertical = 3
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 10
@@ -28,21 +30,20 @@ theme_override_constants/margin_bottom = 8
 
 [node name="Content" type="HBoxContainer" parent="Margin" unique_id=1046375244]
 layout_mode = 2
+size_flags_vertical = 4
 theme_override_constants/separation = 8
 alignment = 1
 
 [node name="TitleLabel" type="Label" parent="Margin/Content" unique_id=1889952923]
 layout_mode = 2
-text = "SFX"
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+text = "Volume: "
+vertical_alignment = 1
 
 [node name="VolumeSlider" type="HSlider" parent="Margin/Content" unique_id=1137263748]
 custom_minimum_size = Vector2(112, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 4
 value = 100.0
-
-[node name="ValueLabel" type="Label" parent="Margin/Content" unique_id=1289826077]
-visible = false
-layout_mode = 2
-text = "100%"
-horizontal_alignment = 2

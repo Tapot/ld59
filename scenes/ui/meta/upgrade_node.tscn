@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cruyh6g8yynn7" path="res://scripts/ui/meta/upgrade_node.gd" id="1_f7s4t"]
 [ext_resource type="Texture2D" uid="uid://bwjo61mfxng88" path="res://icon.svg" id="2_8y3yc"]
+[ext_resource type="FontFile" uid="uid://kxq0dfj5rsu8" path="res://assets/fonts/Jolly_Lodger/JollyLodger-Regular.ttf" id="3_font"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_node_normal"]
 bg_color = Color(0.12, 0.12, 0.12, 1)
@@ -54,6 +55,7 @@ corner_radius_bottom_left = 10
 [node name="UpgradeNode" type="Button" unique_id=1803159965]
 custom_minimum_size = Vector2(220, 146)
 focus_mode = 0
+theme_override_fonts/font = ExtResource("3_font")
 theme_override_styles/normal = SubResource("StyleBoxFlat_node_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_node_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_node_hover")

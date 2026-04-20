@@ -5,6 +5,10 @@ extends Control
 const MONSTER_PROJECTILE_SCENE: PackedScene = preload("res://scenes/gameplay/combat/monster_projectile.tscn")
 const RUN_END_MONSTER_DISAPPEAR_DURATION: float = 0.7
 const RUN_END_FADE_DURATION: float = 0.35
+const LARGE_MONSTER_EXTRA_PROJECTILES: int = 1
+const HUGE_MONSTER_EXTRA_PROJECTILES: int = 2
+const LARGE_MONSTER_RADIUS_THRESHOLD: float = 20.0
+const HUGE_MONSTER_RADIUS_THRESHOLD: float = 32.0
 
 const BUBBLE_PITCH_MIN: float = 0.85
 const BUBBLE_PITCH_MAX: float = 1.15
@@ -233,15 +237,18 @@ func _spawn_monster_burst(monster: Monster) -> void:
 	var projectile_count: int = SessionState.get_monster_burst_projectile_count()
 	var projectile_pierces: int = SessionState.get_monster_burst_pierce_count()
 	var projectile_bounces: int = SessionState.get_monster_burst_bounce_count()
-	var projectile_damage: float = 28.0
+	var projectile_damage: float = 56.0
 	var projectile_speed: float = 390.0
 	var projectile_range: float = 220.0
 	var projectile_tint: Color = Color(1.0, 0.68, 0.18, 1.0)
+	var source_monster_id: int = monster.get_instance_id()
+	projectile_count += _get_bonus_projectiles_for_monster_size(monster)
 
 	projectile_damage += SessionState.get_monster_burst_damage_bonus()
 	projectile_range += SessionState.get_monster_burst_range_bonus()
 	_spawn_projectile_burst(
 		monster,
+		source_monster_id,
 		projectile_count,
 		projectile_damage,
 		projectile_speed,
@@ -254,6 +261,7 @@ func _spawn_monster_burst(monster: Monster) -> void:
 
 func _spawn_projectile_burst(
 	source_monster: Monster,
+	source_monster_id: int,
 	projectile_count: int,
 	projectile_damage: float,
 	projectile_speed: float,
@@ -272,7 +280,7 @@ func _spawn_projectile_burst(
 			preferred_direction = Vector2.from_angle(randf_range(0.0, TAU))
 
 		_spawn_burst_projectile(
-			source_monster,
+			source_monster_id,
 			origin,
 			preferred_direction,
 			projectile_damage,
@@ -293,7 +301,7 @@ func _spawn_projectile_burst(
 		var angle: float = angle_offset + (float(index) * angle_step)
 		var direction: Vector2 = Vector2.RIGHT.rotated(angle)
 		_spawn_burst_projectile(
-			source_monster,
+			source_monster_id,
 			origin,
 			direction,
 			projectile_damage,
@@ -306,7 +314,7 @@ func _spawn_projectile_burst(
 
 
 func _spawn_burst_projectile(
-	source_monster: Monster,
+	source_monster_id: int,
 	origin: Vector2,
 	direction: Vector2,
 	projectile_damage: float,
@@ -322,7 +330,7 @@ func _spawn_burst_projectile(
 	var start_position: Vector2 = origin + direction * 24.0
 	var speed_variation: float = randf_range(0.92, 1.08)
 	_spawn_burst_projectile_deferred.call_deferred(
-		source_monster,
+		source_monster_id,
 		start_position,
 		direction,
 		projectile_damage,
@@ -335,7 +343,7 @@ func _spawn_burst_projectile(
 
 
 func _spawn_burst_projectile_deferred(
-	source_monster: Monster,
+	source_monster_id: int,
 	start_position: Vector2,
 	direction: Vector2,
 	projectile_damage: float,
@@ -362,7 +370,7 @@ func _spawn_burst_projectile_deferred(
 		projectile_pierces,
 		projectile_bounces,
 		projectile_tint,
-		source_monster
+		source_monster_id
 	)
 
 
@@ -393,6 +401,21 @@ func _get_burst_target_direction(source_monster: Monster) -> Vector2:
 		closest_direction = offset.normalized()
 
 	return closest_direction
+
+
+func _get_bonus_projectiles_for_monster_size(monster: Monster) -> int:
+	if monster == null:
+		return 0
+	if not is_instance_valid(monster):
+		return 0
+
+	var monster_config: Dictionary = SessionState.get_monster_config(monster.monster_type_id)
+	var collision_radius: float = float(monster_config.get("collision_radius", 0.0))
+	if collision_radius >= HUGE_MONSTER_RADIUS_THRESHOLD:
+		return HUGE_MONSTER_EXTRA_PROJECTILES
+	if collision_radius >= LARGE_MONSTER_RADIUS_THRESHOLD:
+		return LARGE_MONSTER_EXTRA_PROJECTILES
+	return 0
 
 
 # DEBUG: visualize monster field bounds — remove before commit

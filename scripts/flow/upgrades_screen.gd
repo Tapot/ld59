@@ -3,6 +3,7 @@ extends Control
 
 const GAME_SCENE_PATH: String = "res://scenes/flow/game.tscn"
 const MAIN_MENU_SCENE_PATH: String = "res://scenes/flow/main_menu.tscn"
+const UI_FONT: FontFile = preload("res://assets/fonts/Jolly_Lodger/JollyLodger-Regular.ttf")
 
 @onready var tier_label: Label = $Paper/Margin/Content/Header/TierLabel
 @onready var summary_label: Label = $Paper/Margin/Content/Header/SummaryLabel
@@ -74,6 +75,7 @@ func _rebuild_cards() -> void:
 		card_button.toggle_mode = true
 		card_button.custom_minimum_size = Vector2(0.0, 146.0)
 		card_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		card_button.add_theme_font_override("font", UI_FONT)
 		card_button.text = _format_rune_card_text(rune_config)
 		card_button.button_pressed = selected_ids.has(rune_id)
 		card_button.disabled = SessionState.is_selection_locked()

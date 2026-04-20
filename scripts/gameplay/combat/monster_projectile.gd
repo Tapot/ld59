@@ -12,7 +12,7 @@ extends Area2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
 var direction: Vector2 = Vector2.RIGHT
-var source_monster: Monster
+var source_monster_id: int = 0
 var remaining_pierces: int = 0
 var remaining_bounces: int = 0
 var travel_bounds_position: Vector2 = Vector2.ZERO
@@ -46,7 +46,7 @@ func setup(
 	projectile_pierces: int,
 	projectile_bounces: int,
 	tint: Color,
-	source: Monster,
+	source_id: int,
 ) -> void:
 	global_position = start_position
 	direction = travel_direction.normalized()
@@ -59,7 +59,7 @@ func setup(
 	max_range = maxf(1.0, projectile_range)
 	remaining_pierces = maxi(0, projectile_pierces)
 	remaining_bounces = maxi(0, projectile_bounces)
-	source_monster = source
+	source_monster_id = maxi(0, source_id)
 	_tint = tint
 	travel_bounds_position = Globals.MONSTERS_FIELD_MIN
 	travel_bounds_size = Globals.MONSTERS_FIELD_MAX - Globals.MONSTERS_FIELD_MIN
@@ -83,7 +83,7 @@ func _on_area_entered(area: Area2D) -> void:
 	if monster == null:
 		return
 
-	if monster == source_monster:
+	if monster.get_instance_id() == source_monster_id:
 		return
 
 	var monster_id: int = monster.get_instance_id()

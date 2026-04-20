@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/widgets/objective_task.gd" id="1"]
+[ext_resource type="FontFile" uid="uid://kxq0dfj5rsu8" path="res://assets/fonts/Jolly_Lodger/JollyLodger-Regular.ttf" id="2_font"]
 
 [sub_resource type="StyleBoxFlat" id="1"]
 bg_color = Color(0.16, 0.16, 0.16, 1)
@@ -45,6 +46,7 @@ theme_override_constants/separation = 8
 
 [node name="TaskDescriptionLabel" type="Label" parent="CardMargin/Content"]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 autowrap_mode = 3
 
 [node name="TargetsRow" type="HBoxContainer" parent="CardMargin/Content"]
@@ -60,5 +62,6 @@ theme_override_styles/fill = SubResource("2")
 [node name="ProgressLabel" type="Label" parent="CardMargin/Content"]
 layout_mode = 2
 horizontal_alignment = 1
+theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 14
 text = "0 / 0"

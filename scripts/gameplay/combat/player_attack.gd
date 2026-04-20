@@ -12,7 +12,7 @@ const INACTIVE_COLOR: Color = Color(0.58, 0.86, 0.94, 0.72)
 const ACTIVE_COLOR: Color = Color(1.0, 0.84, 0.32, 0.96)
 
 @export var attack_radius: float = 24.0
-@export var damage_per_second: float = 45.0
+@export var damage_per_second: float = 67.5
 @export_range(0.05, 1.0, 0.05) var lifetime_slow_scale: float = 0.33333334
 @export var stasis_field_enabled: bool = false
 @export var attack_bounds_position: Vector2 = Vector2.ZERO
@@ -35,6 +35,7 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	Input.set_default_cursor_shape(Input.CURSOR_ARROW)
+	_targeted_monsters.clear()
 	_release_all_field_effects()
 
 
@@ -149,11 +150,11 @@ func _release_field_effects(monster: Monster) -> void:
 func _release_all_field_effects() -> void:
 	var active_monsters: Array = _field_effect_monsters.values()
 	_field_effect_monsters.clear()
-	for monster_variant: Variant in active_monsters:
-		var monster: Monster = monster_variant as Monster
-		if monster == null:
+	for monster_ref: Variant in active_monsters:
+		if not is_instance_valid(monster_ref):
 			continue
-		if not is_instance_valid(monster):
+		var monster: Monster = monster_ref as Monster
+		if monster == null:
 			continue
 		monster.pop_lifetime_slow()
 		if stasis_field_enabled:

@@ -1,7 +1,7 @@
 extends Control
 
 
-const INTRO_SCENE_PATH: String = "res://scenes/flow/intro_sequence.tscn"
+const MAIN_MENU_SCENE_PATH: String = "res://scenes/flow/main_menu.tscn"
 const UPGRADES_SCENE_PATH: String = "res://scenes/flow/upgrades_screen.tscn"
 const MONSTER_ICON_SIZE: Vector2 = Vector2(34.0, 34.0)
 const WINDOW_FADE_IN_DURATION: float = 0.32
@@ -10,7 +10,6 @@ const WINDOW_FADE_IN_DURATION: float = 0.32
 @onready var summary_label: Label = $Paper/Margin/Content/SummaryLabel
 @onready var results_scroll: ScrollContainer = $Paper/Margin/Content/ResultsScroll
 @onready var killed_list: VBoxContainer = $Paper/Margin/Content/ResultsScroll/ResultsContent/KilledList
-@onready var tasks_list: VBoxContainer = $Paper/Margin/Content/ResultsScroll/ResultsContent/TasksList
 @onready var action_button: Button = $Paper/Margin/Content/ButtonsRow/ActionButton
 @onready var population_counter = $PopulationCounter
 @onready var paper: Panel = $Paper
@@ -30,22 +29,24 @@ func _refresh_content() -> void:
 	var summary: Dictionary = SessionState.get_last_run_summary()
 	var ending_mode: String = str(summary.get("ending_mode", "lose"))
 	population_counter.set_population_value(SessionState.format_population(SessionState.get_population_current()))
-	_rebuild_killed_monsters(summary)
-	_rebuild_tasks(summary)
 
 	if ending_mode == "win":
-		title_label.text = "Signal Delivered"
-		summary_label.text = "You Saved %s People" % SessionState.format_population(SessionState.get_population_current())
+		title_label.text = "The signal was recieved"
+		summary_label.text = "You saved %s people" % SessionState.format_population(SessionState.get_population_current())
+		results_scroll.visible = false
 		action_button.text = "OK"
 		return
 	if ending_mode == "tier_complete":
+		results_scroll.visible = true
+		_rebuild_killed_monsters(summary)
 		title_label.text = "Run Complete"
 		summary_label.text = "All selected tasks are complete. Tier %d is unlocked." % int(summary.get("current_tier", SessionState.get_current_tier()))
 		action_button.text = "OK"
 		return
 
-	title_label.text = "Extinction"
-	summary_label.text = "The last human is gone."
+	results_scroll.visible = false
+	title_label.text = "All gone"
+	summary_label.text = ""
 	action_button.text = "Try Again"
 
 
@@ -59,7 +60,7 @@ func _on_action_button_pressed() -> void:
 		get_tree().change_scene_to_file(UPGRADES_SCENE_PATH)
 		return
 	SessionState.reset_session()
-	get_tree().change_scene_to_file(INTRO_SCENE_PATH)
+	get_tree().change_scene_to_file(MAIN_MENU_SCENE_PATH)
 
 func _rebuild_killed_monsters(summary: Dictionary) -> void:
 	for child: Node in killed_list.get_children():
@@ -102,34 +103,3 @@ func _rebuild_killed_monsters(summary: Dictionary) -> void:
 	empty_label.text = "No monsters killed."
 	empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	killed_list.add_child(empty_label)
-
-
-func _rebuild_tasks(summary: Dictionary) -> void:
-	for child: Node in tasks_list.get_children():
-		child.queue_free()
-
-	var objectives: Array = summary.get("objectives", [])
-	for objective_variant: Variant in objectives:
-		if typeof(objective_variant) != TYPE_DICTIONARY:
-			continue
-		var objective: Dictionary = objective_variant
-		var label: Label = Label.new()
-		var current_value: int = int(objective.get("current", 0))
-		var target_value: int = int(objective.get("target", 0))
-		var complete_prefix: String = "[Done]" if bool(objective.get("complete", false)) else "[Open]"
-		label.text = "%s %s (%d / %d)" % [
-			complete_prefix,
-			str(objective.get("task_description", "")),
-			current_value,
-			target_value
-		]
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		tasks_list.add_child(label)
-
-	if tasks_list.get_child_count() > 0:
-		return
-
-	var empty_label: Label = Label.new()
-	empty_label.text = "No tasks."
-	empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	tasks_list.add_child(empty_label)
