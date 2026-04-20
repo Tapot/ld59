@@ -4,7 +4,7 @@ extends Area2D
 
 const ATTACKABLE_MONSTERS_GROUP: String = "attackable_monsters"
 const INACTIVE_COLOR: Color = Color(0.58, 0.86, 0.94, 0.35)
-const ACTIVE_COLOR: Color = Color(1.0, 0.84, 0.32, 0.45)
+const ACTIVE_COLOR: Color = Color(0.442, 0.129, 0.122, 0.85)
 
 @export var attack_radius: float = 24.0
 @export var damage_per_second: float = 67.5
