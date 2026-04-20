@@ -11,6 +11,7 @@ const UPGRADES_SCENE_PATH: String = "res://scenes/flow/upgrades_screen.tscn"
 
 
 func _ready() -> void:
+	Audio.play_music("rune_room", Audio.MUSIC_RUNE_ROOM)
 	upgrades_button.pressed.connect(_on_upgrades_button_pressed)
 	spawn_again_button.pressed.connect(_on_spawn_again_button_pressed)
 	spawn_again_button.grab_focus()

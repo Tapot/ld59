@@ -12,6 +12,7 @@ const MAIN_MENU_SCENE_PATH: String = "res://scenes/flow/main_menu.tscn"
 
 
 func _ready() -> void:
+	Audio.play_music("main_menu", Audio.MUSIC_MAIN_MENU)
 	action_button.pressed.connect(_on_action_button_pressed)
 	menu_button.pressed.connect(_on_menu_button_pressed)
 	action_button.grab_focus()

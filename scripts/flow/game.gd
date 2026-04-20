@@ -37,6 +37,7 @@ func _ready() -> void:
 	if not SessionState.is_run_active():
 		SessionState.start_run()
 
+	Audio.play_music("battle", Audio.MUSIC_BATTLE)
 	_apply_rune_effects()
 	_refresh_population_ui(SessionState.get_population_current(), SessionState.get_current_drain_per_second())
 	_refresh_objectives_ui()

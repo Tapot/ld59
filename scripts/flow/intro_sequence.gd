@@ -19,6 +19,7 @@ func _ready() -> void:
 	_population_start = SessionState.get_population_start()
 	_population_end = maxi(0, _population_start - SessionState.get_intro_preview_loss())
 	_phase_duration = SessionState.get_intro_counter_duration()
+	Audio.play_music_once("population_down", Audio.MUSIC_POPULATION_DOWN, 0.3)
 	_update_phase_ui()
 
 

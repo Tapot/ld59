@@ -18,6 +18,7 @@ var _loss_transition_started: bool = false
 
 
 func _ready() -> void:
+	Audio.play_music("rune_room", Audio.MUSIC_RUNE_ROOM)
 	SessionState.selection_changed.connect(_refresh_screen)
 	SessionState.tier_changed.connect(_on_tier_changed)
 	SessionState.population_changed.connect(_on_population_changed)

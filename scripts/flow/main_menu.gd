@@ -7,6 +7,7 @@ const INTRO_SCENE_PATH: String = "res://scenes/flow/intro_sequence.tscn"
 
 
 func _ready() -> void:
+	Audio.play_music("main_menu", Audio.MUSIC_MAIN_MENU)
 	start_button.pressed.connect(_on_start_button_pressed)
 	start_button.grab_focus()
 
