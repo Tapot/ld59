@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://doone2xa8ro2g" path="res://scenes/ui/widgets/volume_controls.tscn" id="5"]
 [ext_resource type="PackedScene" uid="uid://dkwhou2b7f12e" path="res://scenes/ui/widgets/population_counter.tscn" id="6"]
 [ext_resource type="Script" path="res://scripts/gameplay/combat/burn_ground.gd" id="7_burnground"]
+[ext_resource type="Texture2D" uid="uid://coku4c5yg8clx" path="res://assets/images/ui/run_background.png" id="8_runback"]
 
 [sub_resource type="StyleBoxFlat" id="1"]
 bg_color = Color(0.14, 0.14, 0.14, 1)
@@ -28,13 +29,8 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[sub_resource type="StyleBoxFlat" id="2"]
-bg_color = Color(0.18, 0.28, 0.16, 1)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0.58, 0.58, 0.58, 1)
+[sub_resource type="StyleBoxTexture" id="2"]
+texture = ExtResource("8_runback")
 
 [node name="Game" type="Control" unique_id=174159690]
 layout_mode = 3
