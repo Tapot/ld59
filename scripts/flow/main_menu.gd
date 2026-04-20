@@ -12,6 +12,11 @@ func _ready() -> void:
 	Audio.play_music("main_menu", Audio.MUSIC_MAIN_MENU)
 	start_button.pressed.connect(_on_start_button_pressed)
 	start_button.grab_focus()
+	# DEBUG: skip to battle scene — uncomment to fast-track
+	#SessionState.reset_session()
+	#SessionState.start_run()
+	#get_tree().change_scene_to_file("res://scenes/flow/game.tscn")
+	#return
 
 
 func _on_start_button_pressed() -> void:

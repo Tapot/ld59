@@ -15,6 +15,8 @@ enum MonsterState {
 @export var max_hp: float = 100.0
 @export var lifetime_range_seconds: Vector2 = Vector2(5.0, 10.0)
 @export var move_speed: float = 210.0
+@export var speed_wobble_amount: float = 0.25
+@export var speed_wobble_frequency: float = 1.8
 @export var roam_radius: float = 220.0
 @export var seek_center_jitter_radius: float = 90.0
 @export var idle_time_range: Vector2 = Vector2(1.0, 2.8)
@@ -29,6 +31,7 @@ const FX_BURN_PULSE_AMOUNT: float = 0.25
 const FX_BURN_MAX_WHITE: float = 0.7
 const FX_SHAKE_MAX_OFFSET: float = 1.5
 const FX_DAMAGE_WINDOW: float = 0.05
+const FX_BOB_HEIGHT: float = 4.0
 const STATUS_BAR_WIDTH: float = 72.0
 
 @onready var sprite: Sprite2D = $Sprite2D
@@ -50,6 +53,9 @@ var monster_type_id: String = "drifter"
 var monster_title: String = "Drifter"
 var drain_multiplier: float = 1.0
 var behavior_type: String = "wander"
+var walk_until_arrived: bool = false
+var flee_radius: float = 120.0
+var flee_speed_multiplier: float = 1.6
 
 var _sprite_scale: float = 0.32
 var _sprite_tint: Color = Color.WHITE
@@ -65,6 +71,7 @@ var _despawn_elapsed: float = 0.0
 var _despawn_duration: float = 0.0
 var _fx_burn_intensity: float = 0.0
 var _fx_damage_timer: float = 0.0
+var _wobble_phase: float = 0.0
 
 
 func configure_from_runtime(monster_config: Dictionary, carry_over_data: Dictionary = {}) -> void:
@@ -74,8 +81,13 @@ func configure_from_runtime(monster_config: Dictionary, carry_over_data: Diction
 	var lifetime_seconds: float = maxf(0.5, float(monster_config.get("lifetime", lifetime_range_seconds.y)))
 	lifetime_range_seconds = Vector2(lifetime_seconds, lifetime_seconds)
 	move_speed = maxf(1.0, float(monster_config.get("speed", move_speed)))
+	speed_wobble_amount = clampf(float(monster_config.get("speed_wobble_amount", speed_wobble_amount)), 0.0, 0.8)
+	speed_wobble_frequency = maxf(0.1, float(monster_config.get("speed_wobble_frequency", speed_wobble_frequency)))
 	drain_multiplier = maxf(0.1, float(monster_config.get("drain_multiplier", 1.0)))
 	behavior_type = str(monster_config.get("behavior_type", "wander"))
+	walk_until_arrived = bool(monster_config.get("walk_until_arrived", walk_until_arrived))
+	flee_radius = maxf(40.0, float(monster_config.get("flee_radius", flee_radius)))
+	flee_speed_multiplier = maxf(1.0, float(monster_config.get("flee_speed_multiplier", flee_speed_multiplier)))
 	roam_radius = maxf(80.0, float(monster_config.get("roam_radius", roam_radius)))
 	seek_center_jitter_radius = maxf(0.0, float(monster_config.get("seek_center_jitter_radius", seek_center_jitter_radius)))
 	idle_time_range = _vector2_from_json(monster_config.get("idle_time_range", [idle_time_range.x, idle_time_range.y]), idle_time_range)
@@ -115,11 +127,13 @@ func _ready() -> void:
 	lifetime_bar.max_value = max_lifetime
 	lifetime_bar.value = remaining_lifetime
 	walk_timer.timeout.connect(_on_walk_timer_timeout)
+	_wobble_phase = randf_range(0.0, TAU)
 	_schedule_idle()
 
 
 func _process(delta: float) -> void:
 	_update_despawn_visuals(delta)
+	_update_sprite_bob()
 
 
 func _physics_process(delta: float) -> void:
@@ -134,17 +148,21 @@ func _physics_process(delta: float) -> void:
 	if _motion_lock_count > 0:
 		return
 
+	if behavior_type == "flee_cursor" and _try_flee_cursor(delta):
+		return
+
 	if not is_walking:
 		return
 
+	var current_speed: float = _get_wobbled_speed()
 	var to_target: Vector2 = walk_target_global_position - global_position
-	if to_target.length() <= move_speed * delta:
-		global_position = walk_target_global_position
+	if to_target.length() <= current_speed * delta:
+		global_position = _clamp_to_move_bounds(walk_target_global_position)
 		is_walking = false
 		_schedule_idle()
 		return
 
-	global_position += to_target.normalized() * move_speed * delta
+	global_position = _clamp_to_move_bounds(global_position + to_target.normalized() * current_speed * delta)
 
 
 func take_damage(amount: float) -> void:
@@ -214,17 +232,47 @@ func _on_walk_timer_timeout() -> void:
 		return
 
 	if is_walking:
+		if walk_until_arrived:
+			return
 		is_walking = false
 		_schedule_idle()
 		return
 
 	walk_target_global_position = _pick_walk_target_global_position()
 	is_walking = true
-	walk_timer.start(randf_range(walk_time_range.x, walk_time_range.y))
+	if not walk_until_arrived:
+		walk_timer.start(randf_range(walk_time_range.x, walk_time_range.y))
 
 
 func _schedule_idle() -> void:
 	walk_timer.start(randf_range(idle_time_range.x, idle_time_range.y))
+
+
+func _get_wobbled_speed() -> float:
+	var wobble: float = sin(Time.get_ticks_msec() * 0.001 * speed_wobble_frequency * TAU + _wobble_phase)
+	return move_speed * (1.0 + wobble * speed_wobble_amount)
+
+
+func _get_wobble_value() -> float:
+	return sin(Time.get_ticks_msec() * 0.001 * speed_wobble_frequency * TAU + _wobble_phase)
+
+
+func _update_sprite_bob() -> void:
+	if _state != MonsterState.ALIVE:
+		sprite.position.y = 0.0
+		return
+
+	if not is_walking and speed_wobble_amount > 0.0:
+		var idle_bob: float = abs(_get_wobble_value()) * FX_BOB_HEIGHT * 0.3
+		sprite.position.y = -idle_bob
+		return
+
+	if not is_walking:
+		sprite.position.y = 0.0
+		return
+
+	var bob: float = abs(_get_wobble_value()) * FX_BOB_HEIGHT
+	sprite.position.y = -bob
 
 
 func _update_lifetime(delta: float) -> bool:
@@ -346,6 +394,18 @@ func _pick_walk_target_global_position() -> Vector2:
 		)
 		return _clamp_to_move_bounds(center + offset)
 
+	if walk_until_arrived:
+		var target: Vector2 = Vector2(
+			randf_range(Globals.MONSTERS_FIELD_MIN.x, Globals.MONSTERS_FIELD_MAX.x),
+			randf_range(Globals.MONSTERS_FIELD_MIN.y, Globals.MONSTERS_FIELD_MAX.y)
+		)
+		while target.distance_to(global_position) < roam_radius * 0.5:
+			target = Vector2(
+				randf_range(Globals.MONSTERS_FIELD_MIN.x, Globals.MONSTERS_FIELD_MAX.x),
+				randf_range(Globals.MONSTERS_FIELD_MIN.y, Globals.MONSTERS_FIELD_MAX.y)
+			)
+		return target
+
 	var direction: Vector2 = _pick_walk_direction()
 	var distance: float = randf_range(roam_radius * 0.55, roam_radius)
 	var desired_target: Vector2 = global_position + direction * distance
@@ -370,6 +430,27 @@ func _pick_walk_direction() -> Vector2:
 			if current_offset.length() > 8.0 and randf() < 0.8:
 				return current_offset.normalized().rotated(randf_range(-0.25, 0.25))
 			return Vector2.from_angle(randf_range(0.0, TAU))
+
+
+func _try_flee_cursor(delta: float) -> bool:
+	if _fx_damage_timer > 0.0:
+		return false
+
+	var mouse_pos: Vector2 = get_global_mouse_position()
+	var to_monster: Vector2 = global_position - mouse_pos
+	var distance: float = to_monster.length()
+
+	if distance > flee_radius:
+		return false
+
+	var flee_dir: Vector2 = to_monster.normalized()
+	if distance < 1.0:
+		flee_dir = Vector2.from_angle(randf_range(0.0, TAU))
+
+	var flee_speed: float = _get_wobbled_speed()
+	global_position = _clamp_to_move_bounds(global_position + flee_dir * flee_speed * delta)
+	is_walking = true
+	return true
 
 
 func _get_move_bounds_center() -> Vector2:
