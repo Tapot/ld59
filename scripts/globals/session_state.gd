@@ -37,7 +37,7 @@ var _active_run_index: int = 0
 var _run_active: bool = false
 var _lingering_monsters: Array[Dictionary] = []
 var _last_run_summary: Dictionary = {}
-var _drain_per_second: int = 0
+var _drain_per_second: int = 1
 var _population_tick_remainder: float = 0.0
 
 
@@ -61,7 +61,7 @@ func reset_session() -> void:
 	_run_active = false
 	_lingering_monsters.clear()
 	_last_run_summary = {}
-	_drain_per_second = 0
+	_drain_per_second = 1
 	_population_tick_remainder = 0.0
 	_sync_unlocked_slots_to_current_tier()
 	session_reset.emit()
@@ -242,6 +242,7 @@ func start_run() -> bool:
 	_selection_locked = true
 	_active_run_index += 1
 	_elapsed_run_time = 0.0
+	@warning_ignore("narrowing_conversion")
 	_drain_per_second = 0.0
 	_initialize_objective_progress()
 	selection_changed.emit()

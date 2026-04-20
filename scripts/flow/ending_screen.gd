@@ -4,21 +4,25 @@ extends Control
 const INTRO_SCENE_PATH: String = "res://scenes/flow/intro_sequence.tscn"
 const UPGRADES_SCENE_PATH: String = "res://scenes/flow/upgrades_screen.tscn"
 const MONSTER_ICON_SIZE: Vector2 = Vector2(34.0, 34.0)
+const WINDOW_FADE_IN_DURATION: float = 0.32
 
 @onready var title_label: Label = $Paper/Margin/Content/TitleLabel
 @onready var summary_label: Label = $Paper/Margin/Content/SummaryLabel
 @onready var results_scroll: ScrollContainer = $Paper/Margin/Content/ResultsScroll
 @onready var killed_list: VBoxContainer = $Paper/Margin/Content/ResultsScroll/ResultsContent/KilledList
-@onready var tasks_list: VBoxContainer = $Paper/Margin/Content/ResultsScroll/ResultsContent/TasksList
 @onready var action_button: Button = $Paper/Margin/Content/ButtonsRow/ActionButton
 @onready var population_counter = $PopulationCounter
+@onready var paper: Panel = $Paper
 
 
 func _ready() -> void:
 	Audio.play_music("main_menu", Audio.MUSIC_MAIN_MENU)
 	action_button.pressed.connect(_on_action_button_pressed)
 	action_button.grab_focus()
+	paper.modulate.a = 0.0
 	_refresh_content()
+	var fade_tween: Tween = create_tween()
+	fade_tween.tween_property(paper, "modulate:a", 1.0, WINDOW_FADE_IN_DURATION)
 
 
 func _refresh_content() -> void:
@@ -26,7 +30,6 @@ func _refresh_content() -> void:
 	var ending_mode: String = str(summary.get("ending_mode", "lose"))
 	population_counter.set_population_value(SessionState.format_population(SessionState.get_population_current()))
 	_rebuild_killed_monsters(summary)
-	_rebuild_tasks(summary)
 
 	if ending_mode == "win":
 		title_label.text = "Signal Delivered"
@@ -97,34 +100,3 @@ func _rebuild_killed_monsters(summary: Dictionary) -> void:
 	empty_label.text = "No monsters killed."
 	empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	killed_list.add_child(empty_label)
-
-
-func _rebuild_tasks(summary: Dictionary) -> void:
-	for child: Node in tasks_list.get_children():
-		child.queue_free()
-
-	var objectives: Array = summary.get("objectives", [])
-	for objective_variant: Variant in objectives:
-		if typeof(objective_variant) != TYPE_DICTIONARY:
-			continue
-		var objective: Dictionary = objective_variant
-		var label: Label = Label.new()
-		var current_value: int = int(objective.get("current", 0))
-		var target_value: int = int(objective.get("target", 0))
-		var complete_prefix: String = "[Done]" if bool(objective.get("complete", false)) else "[Open]"
-		label.text = "%s %s (%d / %d)" % [
-			complete_prefix,
-			str(objective.get("task_description", "")),
-			current_value,
-			target_value
-		]
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		tasks_list.add_child(label)
-
-	if tasks_list.get_child_count() > 0:
-		return
-
-	var empty_label: Label = Label.new()
-	empty_label.text = "No tasks."
-	empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	tasks_list.add_child(empty_label)

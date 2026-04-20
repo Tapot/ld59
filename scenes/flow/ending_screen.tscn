@@ -100,15 +100,6 @@ text = "Killed Monsters"
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="TasksSectionLabel" type="Label" parent="Paper/Margin/Content/ResultsScroll/ResultsContent"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Tasks"
-
-[node name="TasksList" type="VBoxContainer" parent="Paper/Margin/Content/ResultsScroll/ResultsContent"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
 [node name="ButtonsRow" type="HBoxContainer" parent="Paper/Margin/Content"]
 layout_mode = 2
 alignment = 1

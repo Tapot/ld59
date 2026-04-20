@@ -3,6 +3,8 @@ extends Control
 
 
 const MONSTER_PROJECTILE_SCENE: PackedScene = preload("res://scenes/gameplay/combat/monster_projectile.tscn")
+const RUN_END_MONSTER_DISAPPEAR_DURATION: float = 0.7
+const RUN_END_FADE_DURATION: float = 0.35
 
 enum BurstTrigger {
 	SPAWN,
@@ -24,6 +26,7 @@ const BUBBLE_VOLUME_RANGE: float = 1.5
 @onready var exit_button: Button = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/ExitButton
 @onready var population_counter = $PopulationCounter
 @onready var _bubble_sfx_pool: Array[AudioStreamPlayer] = [$BubbleSfx1, $BubbleSfx2, $BubbleSfx3]
+@onready var _fade_overlay: ColorRect = $RunEndFadeOverlay
 
 var _kill_count: int = 0
 var _kill_counts_by_type: Dictionary = {}
@@ -37,6 +40,7 @@ func _ready() -> void:
 		SessionState.start_run()
 
 	Audio.play_music("battle", Audio.MUSIC_BATTLE)
+	_fade_overlay.modulate.a = 0.0
 	_apply_rune_effects()
 	_refresh_population_ui(SessionState.get_population_current(), SessionState.get_current_drain_per_second())
 
@@ -128,11 +132,37 @@ func _finish_run(outcome: String) -> void:
 		return
 
 	_run_transition_started = true
+	player_attack.visible = false
+	player_attack.set_process(false)
+	player_attack.set_physics_process(false)
+	exit_button.disabled = true
 	if outcome == "manual_exit" or outcome == "loss":
 		_capture_surviving_monsters()
 
 	var result: Dictionary = SessionState.finish_run(outcome, _kill_count, _kill_counts_by_type)
+	_play_run_end_transition()
+	await get_tree().create_timer(RUN_END_MONSTER_DISAPPEAR_DURATION + RUN_END_FADE_DURATION).timeout
 	get_tree().change_scene_to_file(str(result.get("next_scene_path", "res://scenes/flow/upgrades_screen.tscn")))
+
+
+func _play_run_end_transition() -> void:
+	for monster: Monster in _monsters:
+		if monster == null:
+			continue
+		if not is_instance_valid(monster):
+			continue
+		monster.play_run_end_disappear(RUN_END_MONSTER_DISAPPEAR_DURATION)
+
+	for projectile: Node in projectile_container.get_children():
+		var canvas_item: CanvasItem = projectile as CanvasItem
+		if canvas_item == null:
+			continue
+		var projectile_tween: Tween = canvas_item.create_tween()
+		projectile_tween.tween_property(canvas_item, "modulate:a", 0.0, RUN_END_MONSTER_DISAPPEAR_DURATION)
+
+	var fade_tween: Tween = create_tween()
+	fade_tween.tween_interval(RUN_END_MONSTER_DISAPPEAR_DURATION)
+	fade_tween.tween_property(_fade_overlay, "modulate:a", 1.0, RUN_END_FADE_DURATION)
 
 
 func _capture_surviving_monsters() -> void:
