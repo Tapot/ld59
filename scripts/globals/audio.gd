@@ -40,6 +40,15 @@ const POWERUP_SOUNDS: Array[AudioStream] = [
 	preload("res://assets/audio/ld59_powerup1.mp3"),
 	preload("res://assets/audio/ld59_powerup2.mp3"),
 ]
+const BURN_SHORT_SOUNDS: Array[AudioStream] = [
+	preload("res://assets/audio/ld59_burn-short1.mp3"),
+	preload("res://assets/audio/ld59_burn-short2.mp3"),
+	preload("res://assets/audio/ld59_burn-short3.mp3"),
+	preload("res://assets/audio/ld59_burn-short4.mp3"),
+	preload("res://assets/audio/ld59_burn-short5.mp3"),
+]
+const BURN_LONG_SOUND: AudioStream = preload("res://assets/audio/ld59_burn-long1.mp3")
+const BURN_END_SOUND: AudioStream = preload("res://assets/audio/ld59_burn-end1.mp3")
 
 var _button_sfx: AudioStreamPlayer
 var _music_a: AudioStreamPlayer
