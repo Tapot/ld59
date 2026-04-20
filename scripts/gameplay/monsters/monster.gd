@@ -569,13 +569,12 @@ func _apply_sprite_texture() -> void:
 	if _sprite_texture_path.is_empty():
 		return
 
-	var image_path: String = ProjectSettings.globalize_path(_sprite_texture_path)
-	var image: Image = Image.load_from_file(image_path)
-	if image == null or image.is_empty():
-		push_warning("Could not load monster sprite from %s" % image_path)
+	var texture: Texture2D = load(_sprite_texture_path) as Texture2D
+	if texture == null:
+		push_warning("Could not load monster sprite from %s" % _sprite_texture_path)
 		return
 
-	sprite.texture = ImageTexture.create_from_image(image)
+	sprite.texture = texture
 
 
 func _color_from_json(value: Variant, fallback: Color) -> Color:
