@@ -15,6 +15,13 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
+[sub_resource type="StyleBoxFlat" id="StyleBox_fill"]
+bg_color = Color(0.55, 0.15, 0.1, 0.55)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
 [node name="PopulationCounter" type="Control" unique_id=1110710053]
 custom_minimum_size = Vector2(420, 56)
 layout_mode = 3
@@ -30,6 +37,20 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBox_1")
+
+[node name="ProgressFill" type="Panel" parent="BgPanel" unique_id=7543011]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = -3.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_fill")
 
 [node name="Row" type="HBoxContainer" parent="." unique_id=1466408134]
 layout_mode = 1

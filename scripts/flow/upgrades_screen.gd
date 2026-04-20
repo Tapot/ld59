@@ -67,6 +67,7 @@ func _process(delta: float) -> void:
 	if _population_ui_accum >= POPULATION_UI_INTERVAL:
 		_population_ui_accum = 0.0
 		population_counter.set_population_value(SessionState.format_population(SessionState.get_population_current()))
+		_refresh_population_progress()
 
 
 func _refresh_screen() -> void:
@@ -79,7 +80,14 @@ func _refresh_screen() -> void:
 func _refresh_header() -> void:
 	tier_label.text = "Tier %d / %d" % [SessionState.get_current_tier(), SessionState.get_total_tiers()]
 	population_counter.set_population_value(SessionState.format_population(SessionState.get_population_current()))
+	_refresh_population_progress()
 	slot_label.text = "Slots: %d / %d" % [SessionState.get_selected_rune_ids().size(), SessionState.get_unlocked_slots()]
+
+
+func _refresh_population_progress() -> void:
+	var start_pop: int = SessionState.get_population_start()
+	var ratio: float = float(SessionState.get_population_current()) / float(start_pop) if start_pop > 0 else 0.0
+	population_counter.set_progress(ratio)
 
 
 func _build_pyramid() -> void:

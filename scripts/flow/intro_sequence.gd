@@ -34,6 +34,8 @@ func _process(delta: float) -> void:
 	if _phase == 0:
 		var current_value: int = int(round(lerpf(0.0, float(_population_start), progress)))
 		population_counter.set_population_value(SessionState.format_population(current_value))
+		var fill_ratio: float = float(current_value) / float(_population_start) if _population_start > 0 else 0.0
+		population_counter.set_progress(fill_ratio)
 		if progress < 1.0:
 			return
 		_phase = 1
@@ -47,6 +49,8 @@ func _process(delta: float) -> void:
 			_move_counter_to_top()
 		var drain_value: int = int(round(lerpf(float(_population_start), float(_population_end), progress)))
 		population_counter.set_population_value(SessionState.format_population(drain_value))
+		var fill_ratio2: float = float(drain_value) / float(_population_start) if _population_start > 0 else 0.0
+		population_counter.set_progress(fill_ratio2)
 		if progress < 1.0:
 			return
 		_finish_sequence()

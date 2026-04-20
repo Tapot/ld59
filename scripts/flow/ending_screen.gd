@@ -30,6 +30,9 @@ func _refresh_content() -> void:
 	var summary: Dictionary = SessionState.get_last_run_summary()
 	var ending_mode: String = str(summary.get("ending_mode", "lose"))
 	population_counter.set_population_value(SessionState.format_population(SessionState.get_population_current()))
+	var start_pop: int = SessionState.get_population_start()
+	var ratio: float = float(SessionState.get_population_current()) / float(start_pop) if start_pop > 0 else 0.0
+	population_counter.set_progress(ratio)
 
 	if ending_mode == "win":
 		title_label.text = "The signal was recieved"

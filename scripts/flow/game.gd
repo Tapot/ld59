@@ -184,6 +184,9 @@ func _capture_surviving_monsters() -> void:
 
 func _refresh_population_ui(current_population: int, drain_per_second: int) -> void:
 	population_counter.set_population_value(SessionState.format_population(current_population))
+	var start_pop: int = SessionState.get_population_start()
+	var ratio: float = float(current_population) / float(start_pop) if start_pop > 0 else 0.0
+	population_counter.set_progress(ratio)
 	drain_label.text = "Drain / sec: %s" % SessionState.format_population(drain_per_second)
 
 
