@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://doone2xa8ro2g" path="res://scenes/ui/widgets/volume_controls.tscn" id="5"]
 [ext_resource type="PackedScene" uid="uid://dkwhou2b7f12e" path="res://scenes/ui/widgets/population_counter.tscn" id="6"]
 [ext_resource type="Script" path="res://scripts/gameplay/combat/burn_ground.gd" id="7_burnground"]
-[ext_resource type="Texture2D" uid="uid://coku4c5yg8clx" path="res://assets/images/ui/run_background.png" id="8_runback"]
+[ext_resource type="Texture2D" uid="uid://djgv8qwb0najw" path="res://assets/images/ui/run_background.png" id="8_runback"]
 
 [sub_resource type="StyleBoxFlat" id="1"]
 bg_color = Color(0.14, 0.14, 0.14, 1)
@@ -64,6 +64,7 @@ grow_vertical = 2
 theme_override_styles/panel = SubResource("1")
 
 [node name="TopBar" type="Panel" parent="OuterFrame" unique_id=947819436]
+visible = false
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
@@ -75,6 +76,7 @@ grow_horizontal = 2
 theme_override_styles/panel = SubResource("3")
 
 [node name="TopBarMargin" type="MarginContainer" parent="OuterFrame/TopBar" unique_id=985708824]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -87,16 +89,19 @@ theme_override_constants/margin_right = 14
 theme_override_constants/margin_bottom = 10
 
 [node name="TopBarContent" type="HBoxContainer" parent="OuterFrame/TopBar/TopBarMargin" unique_id=1289541072]
+visible = false
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 18
 
 [node name="DrainLabel" type="Label" parent="OuterFrame/TopBar/TopBarMargin/TopBarContent" unique_id=367685242]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Drain / sec: 0"
 
 [node name="TierLabel" type="Label" parent="OuterFrame/TopBar/TopBarMargin/TopBarContent" unique_id=1398020422]
+visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Tier 1"
@@ -107,10 +112,6 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 86.0
-offset_right = -284.0
-offset_bottom = -24.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("2")
@@ -122,7 +123,7 @@ position = Vector2(4, 4)
 
 [node name="Projectiles" type="Node2D" parent="OuterFrame/PlayfieldFrame/World" unique_id=1783897301]
 
-[node name="BurnGround" type="Node2D" parent="OuterFrame/PlayfieldFrame/World" groups=["burn_ground"]]
+[node name="BurnGround" type="Node2D" parent="OuterFrame/PlayfieldFrame/World" unique_id=325149163 groups=["burn_ground"]]
 script = ExtResource("7_burnground")
 
 [node name="MonsterSpawner" parent="OuterFrame/PlayfieldFrame/World" unique_id=1991069300 instance=ExtResource("2")]
@@ -132,6 +133,7 @@ monster_container_path = NodePath("../Monsters")
 attack_bounds_size = Vector2(900, 640)
 
 [node name="SidePanel" parent="OuterFrame" unique_id=1914105398 instance=ExtResource("4")]
+custom_minimum_size = Vector2(240, 600)
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
