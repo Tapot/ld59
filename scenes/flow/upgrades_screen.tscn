@@ -1,9 +1,9 @@
-[gd_scene format=3 uid="uid://dtneqexxihe8e"]
+[gd_scene format=3 uid="uid://c3i64pte6b35o"]
 
 [ext_resource type="Script" uid="uid://k2cbmyiyctyu" path="res://scripts/flow/upgrades_screen.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://doone2xa8ro2g" path="res://scenes/ui/widgets/volume_controls.tscn" id="2"]
-[ext_resource type="PackedScene" path="res://scenes/ui/widgets/population_counter.tscn" id="3"]
-[ext_resource type="Texture2D" uid="uid://x6ysj3va55vx" path="res://assets/images/ui/runes_back.png" id="4"]
+[ext_resource type="PackedScene" uid="uid://dkwhou2b7f12e" path="res://scenes/ui/widgets/population_counter.tscn" id="3"]
+[ext_resource type="Texture2D" uid="uid://hjlw60ydd6x5" path="res://assets/images/runes_back.png" id="4"]
 
 [sub_resource type="StyleBoxFlat" id="1"]
 bg_color = Color(0.93, 0.89, 0.77, 1)
@@ -17,7 +17,7 @@ corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 
-[node name="RuneSelection" type="Control" unique_id=514628070]
+[node name="RuneSelection" type="Control" unique_id=65503313]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -26,7 +26,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="Background" type="TextureRect" parent="." unique_id=1075822321]
+[node name="Background" type="TextureRect" parent="." unique_id=1730373344]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -37,7 +37,7 @@ texture = ExtResource("4")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Paper" type="Panel" parent="." unique_id=613243863]
+[node name="Paper" type="Panel" parent="." unique_id=2078545735]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.08
@@ -48,7 +48,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("1")
 
-[node name="Margin" type="MarginContainer" parent="Paper" unique_id=471587286]
+[node name="Margin" type="MarginContainer" parent="Paper" unique_id=1157398048]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -60,58 +60,58 @@ theme_override_constants/margin_top = 24
 theme_override_constants/margin_right = 28
 theme_override_constants/margin_bottom = 24
 
-[node name="Content" type="VBoxContainer" parent="Paper/Margin" unique_id=1996488417]
+[node name="Content" type="VBoxContainer" parent="Paper/Margin" unique_id=1112701683]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 18
 
-[node name="Header" type="VBoxContainer" parent="Paper/Margin/Content" unique_id=1176094125]
+[node name="Header" type="VBoxContainer" parent="Paper/Margin/Content" unique_id=1958009022]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="TierLabel" type="Label" parent="Paper/Margin/Content/Header" unique_id=1816133229]
+[node name="TierLabel" type="Label" parent="Paper/Margin/Content/Header" unique_id=1366335464]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 text = "Tier 1 / 10"
 
-[node name="SummaryLabel" type="Label" parent="Paper/Margin/Content/Header" unique_id=1723128647]
+[node name="SummaryLabel" type="Label" parent="Paper/Margin/Content/Header" unique_id=1872230011]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "Choose the runes that will carry this tier."
 autowrap_mode = 3
 
-[node name="StatusRow" type="HBoxContainer" parent="Paper/Margin/Content" unique_id=1055022276]
+[node name="StatusRow" type="HBoxContainer" parent="Paper/Margin/Content" unique_id=1568179964]
 layout_mode = 2
 theme_override_constants/separation = 24
 
-[node name="SlotLabel" type="Label" parent="Paper/Margin/Content/StatusRow" unique_id=598549147]
+[node name="SlotLabel" type="Label" parent="Paper/Margin/Content/StatusRow" unique_id=2017228627]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Slots: 0 / 1"
 horizontal_alignment = 2
 
-[node name="ButtonsRow" type="HBoxContainer" parent="Paper/Margin/Content" unique_id=1674312101]
+[node name="ButtonsRow" type="HBoxContainer" parent="Paper/Margin/Content" unique_id=520759000]
 layout_mode = 2
 theme_override_constants/separation = 12
 alignment = 2
 
-[node name="SummonButton" type="Button" parent="Paper/Margin/Content/ButtonsRow" unique_id=1546561019]
+[node name="SummonButton" type="Button" parent="Paper/Margin/Content/ButtonsRow" unique_id=794141887]
 custom_minimum_size = Vector2(160, 52)
 layout_mode = 2
 disabled = true
 text = "Summon"
 
-[node name="MainMenuButton" type="Button" parent="Paper/Margin/Content/ButtonsRow" unique_id=1374207236]
+[node name="MainMenuButton" type="Button" parent="Paper/Margin/Content/ButtonsRow" unique_id=80962284]
 custom_minimum_size = Vector2(160, 52)
 layout_mode = 2
 text = "Main Menu"
 
-[node name="CardsScroll" type="ScrollContainer" parent="Paper/Margin/Content" unique_id=1641321594]
+[node name="CardsScroll" type="ScrollContainer" parent="Paper/Margin/Content" unique_id=1749251545]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="CardsGrid" type="GridContainer" parent="Paper/Margin/Content/CardsScroll" unique_id=320087040]
+[node name="CardsGrid" type="GridContainer" parent="Paper/Margin/Content/CardsScroll" unique_id=2088550335]
 custom_minimum_size = Vector2(900, 0)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -119,7 +119,7 @@ theme_override_constants/h_separation = 16
 theme_override_constants/v_separation = 16
 columns = 2
 
-[node name="VolumeControls" parent="." unique_id=1787508913 instance=ExtResource("2")]
+[node name="VolumeControls" parent="." unique_id=137825472 instance=ExtResource("2")]
 layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
@@ -129,7 +129,7 @@ offset_right = -24.0
 offset_bottom = 68.0
 grow_horizontal = 0
 
-[node name="PopulationCounter" parent="." unique_id=2054414603 instance=ExtResource("3")]
+[node name="PopulationCounter" parent="." unique_id=1020127718 instance=ExtResource("3")]
 layout_mode = 0
 anchor_left = 0.5
 anchor_right = 0.5

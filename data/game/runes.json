@@ -18,8 +18,8 @@
 	"effect_type": "damage_per_second",
 	"effect_value": 24.0,
 	"drain_multiplier": 1.12,
-	"objective": { "monster_type": "drifter", "count": 12 },
-	"task_description": "Kill 12 Drifters"
+	"objective": { "monster_type": "any", "count": 12 },
+	"task_description": "Kill 12 monsters of any kind"
   },
   {
 	"id": "damage_focus_3",
@@ -29,8 +29,8 @@
 	"effect_type": "attack_radius",
 	"effect_value": 10.0,
 	"drain_multiplier": 1.10,
-	"objective": { "monster_type": "drifter", "count": 16 },
-	"task_description": "Kill 16 Drifters"
+	"objective": { "monster_type": "drifter", "count": 12 },
+	"task_description": "Kill 12 Drifters"
   },
   {
 	"id": "life_ward_1",
@@ -40,19 +40,19 @@
 	"effect_type": "population_drain_multiplier_delta",
 	"effect_value": -0.18,
 	"drain_multiplier": 0.84,
-	"objective": { "monster_type": "leech", "count": 6 },
-	"task_description": "Kill 6 Leeches"
+	"objective": { "monster_type": "any", "count": 8 },
+	"task_description": "Kill 8 monsters of any kind"
   },
   {
 	"id": "rupture_kill_1",
 	"title": "Rupture Projectile I",
 	"family": "Rupture",
-	"description": "Killed monsters fire one rupture projectile.",
-	"effect_type": "monster_kill_burst_enabled",
-	"effect_value": 1.0,
+	"description": "Rupture projectiles hit harder.",
+	"effect_type": "monster_burst_damage_bonus",
+	"effect_value": 6.0,
 	"drain_multiplier": 1.14,
-	"objective": { "monster_type": "drifter", "count": 8 },
-	"task_description": "Kill 8 Drifters"
+	"objective": { "monster_type": "any", "count": 8 },
+	"task_description": "Kill 8 monsters of any kind"
   },
   {
 	"id": "damage_hold_1",
@@ -73,8 +73,8 @@
 	"effect_type": "population_drain_multiplier_delta",
 	"effect_value": -0.24,
 	"drain_multiplier": 0.78,
-	"objective": { "monster_type": "leech", "count": 8 },
-	"task_description": "Kill 8 Leeches"
+	"objective": { "monster_type": "leech", "count": 4 },
+	"task_description": "Kill 4 Leeches"
   },
   {
 	"id": "rupture_shards_1",
@@ -84,8 +84,8 @@
 	"effect_type": "monster_burst_projectile_count_bonus",
 	"effect_value": 1.0,
 	"drain_multiplier": 1.12,
-	"objective": { "monster_type": "mote", "count": 26 },
-	"task_description": "Kill 26 Motes"
+	"objective": { "monster_type": "mote", "count": 16 },
+	"task_description": "Kill 16 Motes"
   },
   {
 	"id": "damage_stasis_1",
@@ -97,8 +97,8 @@
 	"secondary_effect_type": "attack_radius",
 	"secondary_effect_value": 6.0,
 	"drain_multiplier": 1.13,
-	"objective": { "monster_type": "bulwark", "count": 7 },
-	"task_description": "Kill 7 Bulwarks"
+	"objective": { "monster_type": "bulwark", "count": 8 },
+	"task_description": "Kill 8 Bulwarks"
   },
   {
 	"id": "rupture_lifetime_1",
@@ -108,8 +108,8 @@
 	"effect_type": "monster_burst_range_bonus",
 	"effect_value": 70.0,
 	"drain_multiplier": 1.10,
-	"objective": { "monster_type": "drifter", "count": 18 },
-	"task_description": "Kill 18 Drifters"
+	"objective": { "monster_type": "drifter", "count": 14 },
+	"task_description": "Kill 14 Drifters"
   },
   {
 	"id": "damage_focus_4",
@@ -119,8 +119,8 @@
 	"effect_type": "damage_per_second",
 	"effect_value": 36.0,
 	"drain_multiplier": 1.14,
-	"objective": { "monster_type": "bulwark", "count": 9 },
-	"task_description": "Kill 9 Bulwarks"
+	"objective": { "monster_type": "bulwark", "count": 18 },
+	"task_description": "Kill 18 Bulwarks"
   },
   {
 	"id": "rupture_damage_1",
@@ -130,8 +130,8 @@
 	"effect_type": "monster_burst_damage_bonus",
 	"effect_value": 14.0,
 	"drain_multiplier": 1.11,
-	"objective": { "monster_type": "leech", "count": 11 },
-	"task_description": "Kill 11 Leeches"
+	"objective": { "monster_type": "leech", "count": 8 },
+	"task_description": "Kill 8 Leeches"
   },
   {
 	"id": "rupture_pierce_1",
@@ -141,8 +141,8 @@
 	"effect_type": "monster_burst_pierce_bonus",
 	"effect_value": 1.0,
 	"drain_multiplier": 1.12,
-	"objective": { "monster_type": "reaver", "count": 6 },
-	"task_description": "Kill 6 Reavers"
+	"objective": { "monster_type": "reaver", "count": 12 },
+	"task_description": "Kill 12 Reavers"
   },
   {
 	"id": "rupture_bounce_1",
@@ -152,8 +152,8 @@
 	"effect_type": "monster_burst_bounce_bonus",
 	"effect_value": 1.0,
 	"drain_multiplier": 1.13,
-	"objective": { "monster_type": "bulwark", "count": 10 },
-	"task_description": "Kill 10 Bulwarks"
+	"objective": { "monster_type": "any", "count": 20 },
+	"task_description": "Kill 20 monsters of any kind"
   },
   {
 	"id": "life_ward_3",
@@ -163,8 +163,8 @@
 	"effect_type": "population_drain_multiplier_delta",
 	"effect_value": -0.28,
 	"drain_multiplier": 0.72,
-	"objective": { "monster_type": "leech", "count": 12 },
-	"task_description": "Kill 12 Leeches"
+	"objective": { "monster_type": "leech", "count": 10 },
+	"task_description": "Kill 10 Leeches"
   },
   {
 	"id": "damage_focus_5",
@@ -174,7 +174,7 @@
 	"effect_type": "damage_per_second",
 	"effect_value": 48.0,
 	"drain_multiplier": 1.16,
-	"objective": { "monster_type": "bulwark", "count": 14 },
-	"task_description": "Kill 14 Bulwarks"
+	"objective": { "monster_type": "any", "count": 24 },
+	"task_description": "Kill 24 monsters of any kind"
   }
 ]

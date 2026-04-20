@@ -3,12 +3,8 @@ extends Control
 
 
 const MONSTER_PROJECTILE_SCENE: PackedScene = preload("res://scenes/gameplay/combat/monster_projectile.tscn")
-
-enum BurstTrigger {
-	SPAWN,
-	EXPIRE,
-	KILL
-}
+const RUN_END_MONSTER_DISAPPEAR_DURATION: float = 0.7
+const RUN_END_FADE_DURATION: float = 0.35
 
 const BUBBLE_PITCH_MIN: float = 0.85
 const BUBBLE_PITCH_MAX: float = 1.15
@@ -24,6 +20,7 @@ const BUBBLE_VOLUME_RANGE: float = 1.5
 @onready var exit_button: Button = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/ExitButton
 @onready var population_counter = $PopulationCounter
 @onready var _bubble_sfx_pool: Array[AudioStreamPlayer] = [$BubbleSfx1, $BubbleSfx2, $BubbleSfx3]
+@onready var _fade_overlay: ColorRect = $RunEndFadeOverlay
 
 var _kill_count: int = 0
 var _kill_counts_by_type: Dictionary = {}
@@ -37,6 +34,7 @@ func _ready() -> void:
 		SessionState.start_run()
 
 	Audio.play_music("battle", Audio.MUSIC_BATTLE)
+	_fade_overlay.modulate.a = 0.0
 	_apply_rune_effects()
 	_refresh_population_ui(SessionState.get_population_current(), SessionState.get_current_drain_per_second())
 
@@ -82,7 +80,7 @@ func _apply_rune_effects() -> void:
 
 func _on_monster_spawned(monster: Monster) -> void:
 	add_monster(monster)
-	_spawn_monster_burst(monster, BurstTrigger.SPAWN)
+
 
 
 func _on_all_waves_completed() -> void:
@@ -94,7 +92,7 @@ func _on_monster_killed(monster: Monster) -> void:
 	_kill_count += 1
 	_kill_counts_by_type[monster.monster_type_id] = int(_kill_counts_by_type.get(monster.monster_type_id, 0)) + 1
 	SessionState.register_monster_kill(monster.monster_type_id)
-	_spawn_monster_burst(monster, BurstTrigger.KILL)
+	_spawn_monster_burst(monster)
 	_play_bubble_sfx()
 	if SessionState.are_selected_rune_objectives_complete():
 		_finish_run("completed")
@@ -102,7 +100,7 @@ func _on_monster_killed(monster: Monster) -> void:
 
 func _on_monster_expired(monster: Monster) -> void:
 	SessionState.add_lingering_monster(monster.to_lingering_data())
-	_spawn_monster_burst(monster, BurstTrigger.EXPIRE)
+
 
 
 func _on_monster_tree_exited(monster: Monster) -> void:
@@ -130,11 +128,37 @@ func _finish_run(outcome: String) -> void:
 		return
 
 	_run_transition_started = true
+	player_attack.visible = false
+	player_attack.set_process(false)
+	player_attack.set_physics_process(false)
+	exit_button.disabled = true
 	if outcome == "manual_exit" or outcome == "loss":
 		_capture_surviving_monsters()
 
 	var result: Dictionary = SessionState.finish_run(outcome, _kill_count, _kill_counts_by_type)
+	_play_run_end_transition()
+	await get_tree().create_timer(RUN_END_MONSTER_DISAPPEAR_DURATION + RUN_END_FADE_DURATION).timeout
 	get_tree().change_scene_to_file(str(result.get("next_scene_path", "res://scenes/flow/upgrades_screen.tscn")))
+
+
+func _play_run_end_transition() -> void:
+	for monster: Monster in _monsters:
+		if monster == null:
+			continue
+		if not is_instance_valid(monster):
+			continue
+		monster.play_run_end_disappear(RUN_END_MONSTER_DISAPPEAR_DURATION)
+
+	for projectile: Node in projectile_container.get_children():
+		var canvas_item: CanvasItem = projectile as CanvasItem
+		if canvas_item == null:
+			continue
+		var projectile_tween: Tween = canvas_item.create_tween()
+		projectile_tween.tween_property(canvas_item, "modulate:a", 0.0, RUN_END_MONSTER_DISAPPEAR_DURATION)
+
+	var fade_tween: Tween = create_tween()
+	fade_tween.tween_interval(RUN_END_MONSTER_DISAPPEAR_DURATION)
+	fade_tween.tween_property(_fade_overlay, "modulate:a", 1.0, RUN_END_FADE_DURATION)
 
 
 func _capture_surviving_monsters() -> void:
@@ -202,43 +226,17 @@ func _play_bubble_sfx() -> void:
 			return
 
 
-func _spawn_monster_burst(monster: Monster, trigger: int) -> void:
+func _spawn_monster_burst(monster: Monster) -> void:
 	if projectile_container == null or not is_instance_valid(projectile_container):
 		return
 
-	var projectile_count: int = 0
+	var projectile_count: int = SessionState.get_monster_burst_projectile_count()
 	var projectile_pierces: int = SessionState.get_monster_burst_pierce_count()
 	var projectile_bounces: int = SessionState.get_monster_burst_bounce_count()
-	var projectile_damage: float = 0.0
-	var projectile_speed: float = 0.0
-	var projectile_range: float = 0.0
-	var projectile_tint: Color = Color.WHITE
-
-	match trigger:
-		BurstTrigger.SPAWN:
-			if not SessionState.is_monster_spawn_burst_enabled():
-				return
-			projectile_count = SessionState.get_monster_burst_projectile_count()
-			projectile_damage = 18.0
-			projectile_speed = 330.0
-			projectile_range = 185.0
-			projectile_tint = Color(0.22, 0.82, 1.0, 1.0)
-		BurstTrigger.EXPIRE:
-			if not SessionState.is_monster_expire_burst_enabled():
-				return
-			projectile_count = SessionState.get_monster_burst_projectile_count()
-			projectile_damage = 22.0
-			projectile_speed = 360.0
-			projectile_range = 200.0
-			projectile_tint = Color(0.34, 0.9, 0.42, 1.0)
-		BurstTrigger.KILL:
-			if not SessionState.is_monster_kill_burst_enabled():
-				return
-			projectile_count = SessionState.get_monster_burst_projectile_count()
-			projectile_damage = 28.0
-			projectile_speed = 390.0
-			projectile_range = 220.0
-			projectile_tint = Color(1.0, 0.68, 0.18, 1.0)
+	var projectile_damage: float = 28.0
+	var projectile_speed: float = 390.0
+	var projectile_range: float = 220.0
+	var projectile_tint: Color = Color(1.0, 0.68, 0.18, 1.0)
 
 	projectile_damage += SessionState.get_monster_burst_damage_bonus()
 	projectile_range += SessionState.get_monster_burst_range_bonus()
