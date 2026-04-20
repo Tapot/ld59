@@ -150,16 +150,17 @@ func _physics_process(delta: float) -> void:
 		global_position = _clamp_to_move_bounds(global_position + to_target.normalized() * move_speed * delta)
 
 
-func take_damage(amount: float) -> void:
+func take_damage(amount: float, show_hit_feedback: bool = true, show_burn_scorch_on_kill: bool = true) -> void:
 	if _state != MonsterState.ALIVE:
 		return
 
-	_fx_damage_timer = FX_DAMAGE_WINDOW
+	if show_hit_feedback:
+		_fx_damage_timer = FX_DAMAGE_WINDOW
 	hp = maxf(0.0, hp - amount)
 	hp_bar.value = hp
 
 	if hp <= 0.0:
-		_start_death_sequence()
+		_start_death_sequence(show_burn_scorch_on_kill)
 
 
 func is_alive_for_carry_over() -> bool:
@@ -281,17 +282,19 @@ func _start_expire_sequence() -> void:
 	sprite.modulate.a = 1.0
 
 
-func _start_death_sequence() -> void:
+func _start_death_sequence(show_burn_scorch: bool = true) -> void:
 	if _state != MonsterState.ALIVE:
 		return
 
-	var fx_duration: float = maxf(death_particles.lifetime, burn_scorch.lifetime) + 0.05
+	var fx_duration: float = death_particles.lifetime + 0.05
+	if show_burn_scorch:
+		fx_duration = maxf(fx_duration, burn_scorch.lifetime + 0.05)
 	_begin_despawn(MonsterState.DYING, fx_duration)
 	killed.emit(self)
 	sprite.visible = false
 	death_marker.visible = false
 	death_particles.emitting = true
-	burn_scorch.emitting = true
+	burn_scorch.emitting = show_burn_scorch
 
 
 func _begin_despawn(next_state: MonsterState, duration: float) -> void:

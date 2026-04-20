@@ -91,7 +91,7 @@ func _on_area_entered(area: Area2D) -> void:
 		return
 
 	_hit_monster_ids[monster_id] = true
-	monster.take_damage(damage)
+	monster.take_damage(damage, false, false)
 	if remaining_pierces > 0:
 		remaining_pierces -= 1
 		return
