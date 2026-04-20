@@ -2,9 +2,10 @@
 
 [ext_resource type="Script" uid="uid://e7tfpn5m1xb8" path="res://scripts/flow/main_menu.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://doone2xa8ro2g" path="res://scenes/ui/widgets/volume_controls.tscn" id="2"]
-[ext_resource type="Texture2D" uid="uid://drlkvrfjqu0k2" path="res://assets/images/start_back.png" id="2_l6c7e"]
+[ext_resource type="Texture2D" uid="uid://xx3uie74wxva" path="res://assets/images/ui/start_back.png" id="2_l6c7e"]
 [ext_resource type="Texture2D" uid="uid://bdtmr1x8yjvbj" path="res://assets/images/ui/button_normal.png" id="3_btnn"]
 [ext_resource type="Texture2D" uid="uid://ceclwb12p2q68" path="res://assets/images/ui/button_hover.png" id="4_btnh"]
+[ext_resource type="FontFile" uid="uid://kxq0dfj5rsu8" path="res://assets/fonts/Jolly_Lodger/JollyLodger-Regular.ttf" id="5_font"]
 
 [sub_resource type="StyleBoxTexture" id="2"]
 texture = ExtResource("3_btnn")
@@ -50,6 +51,7 @@ size_flags_vertical = 3
 [node name="StartButton" type="Button" parent="Content" unique_id=211947257]
 custom_minimum_size = Vector2(0, 68)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("5_font")
 theme_override_font_sizes/font_size = 26
 theme_override_styles/normal = SubResource("2")
 theme_override_styles/pressed = SubResource("3")

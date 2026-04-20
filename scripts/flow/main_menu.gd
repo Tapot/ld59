@@ -14,8 +14,7 @@ func _ready() -> void:
 	start_button.grab_focus()
 	# DEBUG: skip to battle scene — uncomment to fast-track
 	#SessionState.reset_session()
-	#SessionState.start_run()
-	#get_tree().change_scene_to_file("res://scenes/flow/game.tscn")
+	#get_tree().change_scene_to_file("res://scenes/flow/upgrades_screen.tscn")
 	#return
 
 

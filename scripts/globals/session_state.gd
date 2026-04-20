@@ -28,6 +28,7 @@ var _current_tier: int = 1
 var _highest_unlocked_tier: int = 1
 var _unlocked_slots: int = 1
 var _selected_rune_ids: Array[String] = []
+var _completed_rune_ids_by_tier: Dictionary = {}
 var _selection_locked: bool = false
 var _selected_rune_progress: Dictionary = {}
 var _population_start: int = 0
@@ -52,6 +53,7 @@ func reset_session() -> void:
 	_highest_unlocked_tier = 1
 	_unlocked_slots = 1
 	_selected_rune_ids.clear()
+	_completed_rune_ids_by_tier.clear()
 	_selection_locked = false
 	_selected_rune_progress.clear()
 	_population_start = int(_run_config.get("starting_population", 8153742618))
@@ -179,6 +181,15 @@ func get_selected_rune_ids() -> Array[String]:
 	return _selected_rune_ids.duplicate()
 
 
+func get_completed_rune_ids_for_tier(tier: int) -> Array[String]:
+	var result: Array[String] = []
+	var stored: Variant = _completed_rune_ids_by_tier.get(tier, [])
+	if typeof(stored) == TYPE_ARRAY:
+		for item: Variant in stored:
+			result.append(str(item))
+	return result
+
+
 func set_selected_rune_ids(rune_ids: Array[String]) -> void:
 	if _selection_locked:
 		return
@@ -269,6 +280,7 @@ func finish_run(outcome: String, kill_count: int, kill_counts_by_type: Dictionar
 	elif tier_completed:
 		ending_mode = "tier_complete"
 		next_scene_path = "res://scenes/flow/ending_screen.tscn"
+		_completed_rune_ids_by_tier[_current_tier] = _selected_rune_ids.duplicate()
 		_apply_completed_rune_rewards()
 		if _current_tier >= get_total_tiers():
 			ending_mode = "win"
