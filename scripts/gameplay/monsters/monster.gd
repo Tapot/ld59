@@ -56,6 +56,8 @@ var behavior_type: String = "wander"
 var walk_until_arrived: bool = false
 var flee_radius: float = 120.0
 var flee_speed_multiplier: float = 1.6
+var orbit_radius: float = 100.0
+var orbit_speed: float = 2.5
 
 var _sprite_scale: float = 0.32
 var _sprite_tint: Color = Color.WHITE
@@ -72,6 +74,8 @@ var _despawn_duration: float = 0.0
 var _fx_burn_intensity: float = 0.0
 var _fx_damage_timer: float = 0.0
 var _wobble_phase: float = 0.0
+var _orbit_angle: float = 0.0
+var _orbit_center: Vector2 = Vector2.ZERO
 
 
 func configure_from_runtime(monster_config: Dictionary, carry_over_data: Dictionary = {}) -> void:
@@ -88,6 +92,8 @@ func configure_from_runtime(monster_config: Dictionary, carry_over_data: Diction
 	walk_until_arrived = bool(monster_config.get("walk_until_arrived", walk_until_arrived))
 	flee_radius = maxf(40.0, float(monster_config.get("flee_radius", flee_radius)))
 	flee_speed_multiplier = maxf(1.0, float(monster_config.get("flee_speed_multiplier", flee_speed_multiplier)))
+	orbit_radius = maxf(30.0, float(monster_config.get("orbit_radius", orbit_radius)))
+	orbit_speed = maxf(0.5, float(monster_config.get("orbit_speed", orbit_speed)))
 	roam_radius = maxf(80.0, float(monster_config.get("roam_radius", roam_radius)))
 	seek_center_jitter_radius = maxf(0.0, float(monster_config.get("seek_center_jitter_radius", seek_center_jitter_radius)))
 	idle_time_range = _vector2_from_json(monster_config.get("idle_time_range", [idle_time_range.x, idle_time_range.y]), idle_time_range)
@@ -128,6 +134,7 @@ func _ready() -> void:
 	lifetime_bar.value = remaining_lifetime
 	walk_timer.timeout.connect(_on_walk_timer_timeout)
 	_wobble_phase = randf_range(0.0, TAU)
+	_orbit_angle = randf_range(0.0, TAU)
 	_schedule_idle()
 
 
@@ -149,6 +156,10 @@ func _physics_process(delta: float) -> void:
 		return
 
 	if behavior_type == "flee_cursor" and _try_flee_cursor(delta):
+		return
+
+	if behavior_type == "orbit":
+		_update_orbit(delta)
 		return
 
 	if not is_walking:
@@ -229,6 +240,11 @@ func pop_motion_lock() -> void:
 
 func _on_walk_timer_timeout() -> void:
 	if _motion_lock_count > 0:
+		return
+
+	if behavior_type == "orbit":
+		_pick_new_orbit_center()
+		walk_timer.start(randf_range(walk_time_range.x, walk_time_range.y))
 		return
 
 	if is_walking:
@@ -451,6 +467,36 @@ func _try_flee_cursor(delta: float) -> bool:
 	global_position = _clamp_to_move_bounds(global_position + flee_dir * flee_speed * delta)
 	is_walking = true
 	return true
+
+
+func _update_orbit(delta: float) -> void:
+	var mouse_pos: Vector2 = get_global_mouse_position()
+
+	_orbit_angle += orbit_speed * delta
+	if _orbit_angle > TAU:
+		_orbit_angle -= TAU
+
+	var wobble: float = sin(_orbit_angle * 3.0 + _wobble_phase) * 0.15
+	var effective_radius: float = orbit_radius * (1.0 + wobble)
+
+	var target: Vector2 = mouse_pos + Vector2(
+		cos(_orbit_angle) * effective_radius,
+		sin(_orbit_angle) * effective_radius
+	)
+	target = _clamp_to_move_bounds(target)
+
+	var to_target: Vector2 = target - global_position
+	var max_step: float = _get_wobbled_speed() * delta
+	if to_target.length() <= max_step:
+		global_position = target
+	else:
+		global_position = _clamp_to_move_bounds(global_position + to_target.normalized() * max_step)
+	is_walking = true
+
+
+func _pick_new_orbit_center() -> void:
+	var offset: Vector2 = Vector2.from_angle(randf_range(0.0, TAU)) * randf_range(orbit_radius * 0.5, orbit_radius * 1.5)
+	_orbit_center = _clamp_to_move_bounds(global_position + offset)
 
 
 func _get_move_bounds_center() -> Vector2:
