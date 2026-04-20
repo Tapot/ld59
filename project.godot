@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 
 SessionState="*res://scripts/globals/session_state.gd"
 Globals="*uid://bt8bly46mfeqk"
+Audio="*res://scripts/globals/audio.gd"
 
 [display]
 

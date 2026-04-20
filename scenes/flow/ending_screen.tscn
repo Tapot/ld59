@@ -1,22 +1,22 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/flow/upgrades_screen.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/flow/ending_screen.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/ui/widgets/volume_controls.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/ui/widgets/population_counter.tscn" id="3"]
 
 [sub_resource type="StyleBoxFlat" id="1"]
-bg_color = Color(0.93, 0.89, 0.77, 1)
+bg_color = Color(0.09, 0.09, 0.09, 1)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
-border_color = Color(0.31, 0.22, 0.14, 1)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
+border_color = Color(0.3, 0.3, 0.3, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
 
-[node name="RuneSelection" type="Control"]
+[node name="EndingScreen" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -36,11 +36,15 @@ color = Color(0, 0, 0, 1)
 
 [node name="Paper" type="Panel" parent="."]
 layout_mode = 1
-anchors_preset = 15
-anchor_left = 0.08
-anchor_top = 0.06
-anchor_right = 0.92
-anchor_bottom = 0.94
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -160.0
+offset_right = 250.0
+offset_bottom = 160.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("1")
@@ -53,68 +57,43 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 24
+theme_override_constants/margin_top = 26
 theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 24
+theme_override_constants/margin_bottom = 26
 
 [node name="Content" type="VBoxContainer" parent="Paper/Margin"]
 layout_mode = 2
 size_flags_vertical = 3
+alignment = 1
 theme_override_constants/separation = 18
 
-[node name="Header" type="VBoxContainer" parent="Paper/Margin/Content"]
+[node name="TitleLabel" type="Label" parent="Paper/Margin/Content"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_font_sizes/font_size = 32
+text = "Signal Delivered"
+horizontal_alignment = 1
 
-[node name="TierLabel" type="Label" parent="Paper/Margin/Content/Header"]
+[node name="SummaryLabel" type="Label" parent="Paper/Margin/Content"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "Tier 1 / 10"
-
-[node name="SummaryLabel" type="Label" parent="Paper/Margin/Content/Header"]
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "Choose the runes that will carry this tier."
+theme_override_font_sizes/font_size = 18
+text = "You Saved 0 People"
+horizontal_alignment = 1
 autowrap_mode = 3
-
-[node name="StatusRow" type="HBoxContainer" parent="Paper/Margin/Content"]
-layout_mode = 2
-theme_override_constants/separation = 24
-
-[node name="SlotLabel" type="Label" parent="Paper/Margin/Content/StatusRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-horizontal_alignment = 2
-text = "Slots: 0 / 1"
 
 [node name="ButtonsRow" type="HBoxContainer" parent="Paper/Margin/Content"]
 layout_mode = 2
-alignment = 2
+alignment = 1
 theme_override_constants/separation = 12
 
-[node name="SummonButton" type="Button" parent="Paper/Margin/Content/ButtonsRow"]
+[node name="ActionButton" type="Button" parent="Paper/Margin/Content/ButtonsRow"]
 custom_minimum_size = Vector2(160, 52)
 layout_mode = 2
-disabled = true
-text = "Summon"
+text = "Begin Again"
 
-[node name="MainMenuButton" type="Button" parent="Paper/Margin/Content/ButtonsRow"]
+[node name="MenuButton" type="Button" parent="Paper/Margin/Content/ButtonsRow"]
 custom_minimum_size = Vector2(160, 52)
 layout_mode = 2
 text = "Main Menu"
-
-[node name="CardsScroll" type="ScrollContainer" parent="Paper/Margin/Content"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="CardsGrid" type="GridContainer" parent="Paper/Margin/Content/CardsScroll"]
-custom_minimum_size = Vector2(900, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-columns = 2
-theme_override_constants/h_separation = 16
-theme_override_constants/v_separation = 16
 
 [node name="VolumeControls" parent="." instance=ExtResource("2")]
 layout_mode = 0

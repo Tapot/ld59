@@ -1,38 +1,38 @@
-[gd_scene load_steps=8 format=3 uid="uid://1yap0r6rcpm0"]
+[gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/gameplay/monsters/monster.gd" id="1_kofnl"]
-[ext_resource type="Texture2D" uid="uid://bwjo61mfxng88" path="res://icon.svg" id="2_5ir18"]
+[ext_resource type="Script" path="res://scripts/gameplay/monsters/monster.gd" id="1"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="2"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_h6n5d"]
-radius = 26.019224
+[sub_resource type="CircleShape2D" id="1"]
+radius = 26.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lifetime_fill"]
-bg_color = Color(0.2, 0.55, 1, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill"]
+[sub_resource type="StyleBoxFlat" id="2"]
 bg_color = Color(0.95, 0.2, 0.2, 1)
 
-[sub_resource type="Gradient" id="Gradient_deathpop"]
+[sub_resource type="StyleBoxFlat" id="3"]
+bg_color = Color(0.2, 0.55, 1, 1)
+
+[sub_resource type="Gradient" id="4"]
 colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
 
-[sub_resource type="Gradient" id="Gradient_burnscorch"]
+[sub_resource type="Gradient" id="5"]
 offsets = PackedFloat32Array(0, 0.15, 0.5, 1)
 colors = PackedColorArray(0.35, 0.25, 0.12, 0.45, 0.22, 0.15, 0.08, 0.4, 0.15, 0.1, 0.05, 0.3, 0.1, 0.07, 0.03, 0)
 
-[sub_resource type="Curve" id="Curve_burnscale"]
+[sub_resource type="Curve" id="6"]
 _data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -1.0, 0.0, 0, 0]
 point_count = 2
 
-[node name="Monster" type="Area2D" unique_id=496952677]
+[node name="Monster" type="Area2D"]
 collision_layer = 2
 collision_mask = 0
-script = ExtResource("1_kofnl")
+script = ExtResource("1")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2054666896]
+[node name="Sprite2D" type="Sprite2D" parent="."]
 scale = Vector2(0.32, 0.32)
-texture = ExtResource("2_5ir18")
+texture = ExtResource("2")
 
-[node name="DeathMarker" type="ColorRect" parent="." unique_id=160245118]
+[node name="DeathMarker" type="ColorRect" parent="."]
 visible = false
 offset_left = -6.0
 offset_top = -6.0
@@ -40,39 +40,33 @@ offset_right = 6.0
 offset_bottom = 6.0
 color = Color(1, 0.9, 0.2, 1)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1397183981]
-shape = SubResource("CircleShape2D_h6n5d")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1")
 
-[node name="HpBar" type="ProgressBar" parent="." unique_id=1834590936]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -34.0
-offset_top = 36.0
-offset_right = 34.0
-offset_bottom = 52.0
+[node name="StatusLine" type="HBoxContainer" parent="."]
+offset_left = -38.0
+offset_top = -50.0
+offset_right = 38.0
+offset_bottom = -30.0
+theme_override_constants/separation = 2
+
+[node name="HpBar" type="ProgressBar" parent="StatusLine"]
+custom_minimum_size = Vector2(36, 0)
+layout_mode = 2
+size_flags_horizontal = 3
 value = 100.0
 show_percentage = false
-visible = false
-theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
+theme_override_styles/fill = SubResource("2")
 
-[node name="LifetimeBar" type="ProgressBar" parent="." unique_id=245917001]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -34.0
-offset_top = -64.0
-offset_right = 34.0
-offset_bottom = -48.0
+[node name="LifetimeBar" type="ProgressBar" parent="StatusLine"]
+custom_minimum_size = Vector2(36, 0)
+layout_mode = 2
+size_flags_horizontal = 3
 value = 100.0
 show_percentage = false
-theme_override_styles/fill = SubResource("StyleBoxFlat_lifetime_fill")
+theme_override_styles/fill = SubResource("3")
 
-[node name="WalkTimer" type="Timer" parent="." unique_id=301620003]
+[node name="WalkTimer" type="Timer" parent="."]
 one_shot = true
 
 [node name="DeathParticles" type="CPUParticles2D" parent="."]
@@ -87,7 +81,7 @@ initial_velocity_min = 60.0
 initial_velocity_max = 140.0
 scale_amount_min = 1.0
 scale_amount_max = 2.5
-color_ramp = SubResource("Gradient_deathpop")
+color_ramp = SubResource("4")
 
 [node name="BurnScorch" type="CPUParticles2D" parent="."]
 emitting = false
@@ -103,5 +97,5 @@ damping_min = 40.0
 damping_max = 80.0
 scale_amount_min = 5.0
 scale_amount_max = 10.0
-scale_amount_curve = SubResource("Curve_burnscale")
-color_ramp = SubResource("Gradient_burnscorch")
+scale_amount_curve = SubResource("6")
+color_ramp = SubResource("5")

@@ -1,8 +1,9 @@
 extends Control
 
 
-const GAME_SCENE_PATH: String = "res://scenes/flow/game.tscn"
-@onready var start_button: Button = $StartButton
+const INTRO_SCENE_PATH: String = "res://scenes/flow/intro_sequence.tscn"
+
+@onready var start_button: Button = $Paper/Margin/Content/StartButton
 
 
 func _ready() -> void:
@@ -12,5 +13,4 @@ func _ready() -> void:
 
 func _on_start_button_pressed() -> void:
 	SessionState.reset_session()
-	SessionState.start_next_run()
-	get_tree().change_scene_to_file(GAME_SCENE_PATH)
+	get_tree().change_scene_to_file(INTRO_SCENE_PATH)

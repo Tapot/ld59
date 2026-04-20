@@ -1,16 +1,13 @@
-[gd_scene format=3 uid="uid://c7e1dbxghm7f6"]
+[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://cove4whc4hohx" path="res://scripts/flow/game.gd" id="1_7lgk1"]
-[ext_resource type="PackedScene" uid="uid://bpoa7e3383ldj" path="res://scenes/gameplay/monsters/monster_spawner.tscn" id="2_ortxj"]
-[ext_resource type="PackedScene" uid="uid://dapf5s62dvs6b" path="res://scenes/gameplay/combat/player_attack.tscn" id="3_0p8uj"]
-[ext_resource type="PackedScene" uid="uid://dmu86ak4hyk1b" path="res://scenes/ui/panels/side_panel.tscn" id="4_tac4v"]
-[ext_resource type="AudioStream" uid="uid://bb1yhbdgv8cv2" path="res://audio/ld59.mp3" id="5_uokax"]
-[ext_resource type="AudioStream" path="res://audio/ld59_bubble1.mp3" id="6_bub1"]
-[ext_resource type="AudioStream" path="res://audio/ld59_bubble2.mp3" id="7_bub2"]
-[ext_resource type="AudioStream" path="res://audio/ld59_bubble3.mp3" id="8_bub3"]
-[ext_resource type="AudioStream" path="res://audio/ld59_bubble4.mp3" id="9_bub4"]
+[ext_resource type="Script" path="res://scripts/flow/game.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/monsters/monster_spawner.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/combat/player_attack.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/ui/panels/side_panel.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/widgets/volume_controls.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/ui/widgets/population_counter.tscn" id="6"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_outer_frame"]
+[sub_resource type="StyleBoxFlat" id="1"]
 bg_color = Color(0.14, 0.14, 0.14, 1)
 border_width_left = 4
 border_width_top = 4
@@ -18,7 +15,7 @@ border_width_right = 4
 border_width_bottom = 4
 border_color = Color(0.52, 0.52, 0.52, 1)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_playfield"]
+[sub_resource type="StyleBoxFlat" id="2"]
 bg_color = Color(0.18, 0.28, 0.16, 1)
 border_width_left = 4
 border_width_top = 4
@@ -26,25 +23,37 @@ border_width_right = 4
 border_width_bottom = 4
 border_color = Color(0.58, 0.58, 0.58, 1)
 
-[node name="Game" type="Control" unique_id=767049887]
+[sub_resource type="StyleBoxFlat" id="3"]
+bg_color = Color(0.09, 0.09, 0.09, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.35, 0.35, 0.35, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="Game" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_7lgk1")
+script = ExtResource("1")
 
-[node name="Background" type="ColorRect" parent="." unique_id=677378294]
+[node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.07, 0.07, 0.07, 1)
+color = Color(0, 0, 0, 1)
 
-[node name="OuterFrame" type="Panel" parent="." unique_id=828488498]
+[node name="OuterFrame" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -55,35 +64,74 @@ offset_right = -28.0
 offset_bottom = -28.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_outer_frame")
+theme_override_styles/panel = SubResource("1")
 
-[node name="PlayfieldFrame" type="Panel" parent="OuterFrame" unique_id=1272083735]
+[node name="TopBar" type="Panel" parent="OuterFrame"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 18.0
+offset_top = 18.0
+offset_right = -18.0
+offset_bottom = 72.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("3")
+
+[node name="TopBarMargin" type="MarginContainer" parent="OuterFrame/TopBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+
+[node name="TopBarContent" type="HBoxContainer" parent="OuterFrame/TopBar/TopBarMargin"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+
+[node name="DrainLabel" type="Label" parent="OuterFrame/TopBar/TopBarMargin/TopBarContent"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Drain / sec: 0"
+
+[node name="TierLabel" type="Label" parent="OuterFrame/TopBar/TopBarMargin/TopBarContent"]
+layout_mode = 2
+horizontal_alignment = 2
+theme_override_font_sizes/font_size = 20
+text = "Tier 1"
+
+[node name="PlayfieldFrame" type="Panel" parent="OuterFrame"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 20.0
-offset_top = 20.0
+offset_top = 86.0
 offset_right = -284.0
 offset_bottom = -24.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_playfield")
+theme_override_styles/panel = SubResource("2")
 
-[node name="World" type="Node2D" parent="OuterFrame/PlayfieldFrame" unique_id=593357151]
+[node name="World" type="Node2D" parent="OuterFrame/PlayfieldFrame"]
 position = Vector2(4, 4)
 
-[node name="Monsters" type="Node2D" parent="OuterFrame/PlayfieldFrame/World" unique_id=1801823576]
+[node name="Monsters" type="Node2D" parent="OuterFrame/PlayfieldFrame/World"]
 
-[node name="Projectiles" type="Node2D" parent="OuterFrame/PlayfieldFrame/World" unique_id=32655536]
+[node name="Projectiles" type="Node2D" parent="OuterFrame/PlayfieldFrame/World"]
 
-[node name="MonsterSpawner" parent="OuterFrame/PlayfieldFrame/World" unique_id=372484657 instance=ExtResource("2_ortxj")]
+[node name="MonsterSpawner" parent="OuterFrame/PlayfieldFrame/World" instance=ExtResource("2")]
 monster_container_path = NodePath("../Monsters")
 
-[node name="PlayerAttack" parent="OuterFrame/PlayfieldFrame/World" unique_id=353202781 instance=ExtResource("3_0p8uj")]
+[node name="PlayerAttack" parent="OuterFrame/PlayfieldFrame/World" instance=ExtResource("3")]
 attack_bounds_size = Vector2(900, 640)
 
-[node name="SidePanel" parent="OuterFrame" unique_id=1821927344 instance=ExtResource("4_tac4v")]
+[node name="SidePanel" parent="OuterFrame" instance=ExtResource("4")]
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
@@ -91,20 +139,41 @@ anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
 offset_left = -250.0
-offset_top = -312.0
+offset_top = -276.0
 offset_right = -18.0
 offset_bottom = 312.0
 grow_horizontal = 0
 grow_vertical = 2
 
 [node name="BubbleSfx1" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("6_bub1")
 volume_db = -6.0
 
 [node name="BubbleSfx2" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("7_bub2")
 volume_db = -6.0
 
 [node name="BubbleSfx3" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("8_bub3")
 volume_db = -6.0
+
+[node name="VolumeControls" parent="." instance=ExtResource("5")]
+layout_mode = 0
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -252.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 68.0
+grow_horizontal = 0
+
+[node name="PopulationCounter" parent="." instance=ExtResource("6")]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.0
+anchor_right = 0.5
+anchor_bottom = 0.0
+offset_left = -210.0
+offset_top = 24.0
+offset_right = 210.0
+offset_bottom = 80.0
+grow_horizontal = 2

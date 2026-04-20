@@ -1,0 +1,10 @@
+{
+  "spawn_waves": true,
+  "carry_over_enabled": true,
+  "attack_input_action": "attack_hold",
+  "starting_population": 8153742618,
+  "manual_exit_enabled": true,
+  "intro_counter_duration": 1.8,
+  "intro_preview_loss_seconds": 10.0,
+  "time_between_groups": 0.65
+}
