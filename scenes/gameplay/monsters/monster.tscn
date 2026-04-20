@@ -1,7 +1,7 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://d3kethrj4gmda"]
 
-[ext_resource type="Script" path="res://scripts/gameplay/monsters/monster.gd" id="1"]
-[ext_resource type="Texture2D" path="res://icon.svg" id="2"]
+[ext_resource type="Script" uid="uid://gkwqxoca1w5j" path="res://scripts/gameplay/monsters/monster.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://bwjo61mfxng88" path="res://icon.svg" id="2"]
 
 [sub_resource type="CircleShape2D" id="1"]
 radius = 26.0
@@ -15,24 +15,24 @@ bg_color = Color(0.2, 0.55, 1, 1)
 [sub_resource type="Gradient" id="4"]
 colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
 
-[sub_resource type="Gradient" id="5"]
-offsets = PackedFloat32Array(0, 0.15, 0.5, 1)
-colors = PackedColorArray(0.35, 0.25, 0.12, 0.45, 0.22, 0.15, 0.08, 0.4, 0.15, 0.1, 0.05, 0.3, 0.1, 0.07, 0.03, 0)
-
 [sub_resource type="Curve" id="6"]
 _data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -1.0, 0.0, 0, 0]
 point_count = 2
 
-[node name="Monster" type="Area2D"]
+[sub_resource type="Gradient" id="5"]
+offsets = PackedFloat32Array(0, 0.15, 0.5, 1)
+colors = PackedColorArray(0.35, 0.25, 0.12, 0.45, 0.22, 0.15, 0.08, 0.4, 0.15, 0.1, 0.05, 0.3, 0.1, 0.07, 0.03, 0)
+
+[node name="Monster" type="Area2D" unique_id=45908007]
 collision_layer = 2
 collision_mask = 0
 script = ExtResource("1")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=528076993]
 scale = Vector2(0.32, 0.32)
 texture = ExtResource("2")
 
-[node name="DeathMarker" type="ColorRect" parent="."]
+[node name="DeathMarker" type="ColorRect" parent="." unique_id=335294405]
 visible = false
 offset_left = -6.0
 offset_top = -6.0
@@ -40,36 +40,37 @@ offset_right = 6.0
 offset_bottom = 6.0
 color = Color(1, 0.9, 0.2, 1)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=959354401]
 shape = SubResource("1")
 
-[node name="StatusLine" type="HBoxContainer" parent="."]
+[node name="StatusLine" type="HBoxContainer" parent="." unique_id=322195143]
 offset_left = -38.0
 offset_top = -50.0
 offset_right = 38.0
 offset_bottom = -30.0
 theme_override_constants/separation = 2
 
-[node name="HpBar" type="ProgressBar" parent="StatusLine"]
+[node name="HpBar" type="ProgressBar" parent="StatusLine" unique_id=585258331]
 custom_minimum_size = Vector2(36, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-value = 100.0
-show_percentage = false
 theme_override_styles/fill = SubResource("2")
+value = 100.0
+fill_mode = 1
+show_percentage = false
 
-[node name="LifetimeBar" type="ProgressBar" parent="StatusLine"]
+[node name="LifetimeBar" type="ProgressBar" parent="StatusLine" unique_id=854073221]
 custom_minimum_size = Vector2(36, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_styles/fill = SubResource("3")
 value = 100.0
 show_percentage = false
-theme_override_styles/fill = SubResource("3")
 
-[node name="WalkTimer" type="Timer" parent="."]
+[node name="WalkTimer" type="Timer" parent="." unique_id=1501194340]
 one_shot = true
 
-[node name="DeathParticles" type="CPUParticles2D" parent="."]
+[node name="DeathParticles" type="CPUParticles2D" parent="." unique_id=1641389248]
 emitting = false
 amount = 24
 lifetime = 0.5
@@ -79,11 +80,10 @@ spread = 180.0
 gravity = Vector2(0, 0)
 initial_velocity_min = 60.0
 initial_velocity_max = 140.0
-scale_amount_min = 1.0
 scale_amount_max = 2.5
 color_ramp = SubResource("4")
 
-[node name="BurnScorch" type="CPUParticles2D" parent="."]
+[node name="BurnScorch" type="CPUParticles2D" parent="." unique_id=1104844715]
 emitting = false
 amount = 20
 lifetime = 1.8

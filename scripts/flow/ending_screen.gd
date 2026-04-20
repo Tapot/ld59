@@ -4,6 +4,7 @@ extends Control
 const INTRO_SCENE_PATH: String = "res://scenes/flow/intro_sequence.tscn"
 const UPGRADES_SCENE_PATH: String = "res://scenes/flow/upgrades_screen.tscn"
 const MONSTER_ICON_SIZE: Vector2 = Vector2(34.0, 34.0)
+const WINDOW_FADE_IN_DURATION: float = 0.32
 
 @onready var title_label: Label = $Paper/Margin/Content/TitleLabel
 @onready var summary_label: Label = $Paper/Margin/Content/SummaryLabel
@@ -12,13 +13,17 @@ const MONSTER_ICON_SIZE: Vector2 = Vector2(34.0, 34.0)
 @onready var tasks_list: VBoxContainer = $Paper/Margin/Content/ResultsScroll/ResultsContent/TasksList
 @onready var action_button: Button = $Paper/Margin/Content/ButtonsRow/ActionButton
 @onready var population_counter = $PopulationCounter
+@onready var paper: Panel = $Paper
 
 
 func _ready() -> void:
 	Audio.play_music("main_menu", Audio.MUSIC_MAIN_MENU)
 	action_button.pressed.connect(_on_action_button_pressed)
 	action_button.grab_focus()
+	paper.modulate.a = 0.0
 	_refresh_content()
+	var fade_tween: Tween = create_tween()
+	fade_tween.tween_property(paper, "modulate:a", 1.0, WINDOW_FADE_IN_DURATION)
 
 
 func _refresh_content() -> void:

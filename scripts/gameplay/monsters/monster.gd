@@ -73,6 +73,7 @@ var _despawn_elapsed: float = 0.0
 var _despawn_duration: float = 0.0
 var _fx_burn_intensity: float = 0.0
 var _fx_damage_timer: float = 0.0
+var _run_end_disappearing: bool = false
 var _wobble_phase: float = 0.0
 var _orbit_angle: float = 0.0
 var _orbit_center: Vector2 = Vector2.ZERO
@@ -125,6 +126,9 @@ func _ready() -> void:
 	var circle_shape: CircleShape2D = collision_shape.shape as CircleShape2D
 	if circle_shape != null:
 		circle_shape.radius = _collision_radius
+	global_position = _clamp_to_move_bounds(global_position)
+	spawn_global_position = _clamp_to_move_bounds(spawn_global_position)
+	walk_target_global_position = _clamp_to_move_bounds(walk_target_global_position)
 	hp_bar.custom_minimum_size.x = STATUS_BAR_WIDTH * 0.5
 	lifetime_bar.custom_minimum_size.x = STATUS_BAR_WIDTH * 0.5
 	hp_bar.max_value = max_hp
@@ -176,16 +180,17 @@ func _physics_process(delta: float) -> void:
 	global_position = _clamp_to_move_bounds(global_position + to_target.normalized() * current_speed * delta)
 
 
-func take_damage(amount: float) -> void:
+func take_damage(amount: float, show_hit_feedback: bool = true, show_burn_scorch_on_kill: bool = true) -> void:
 	if _state != MonsterState.ALIVE:
 		return
 
-	_fx_damage_timer = FX_DAMAGE_WINDOW
+	if show_hit_feedback:
+		_fx_damage_timer = FX_DAMAGE_WINDOW
 	hp = maxf(0.0, hp - amount)
 	hp_bar.value = hp
 
 	if hp <= 0.0:
-		_start_death_sequence()
+		_start_death_sequence(show_burn_scorch_on_kill)
 
 
 func is_alive_for_carry_over() -> bool:
@@ -204,6 +209,23 @@ func to_lingering_data() -> Dictionary:
 		"hp": hp,
 		"remaining_lifetime": remaining_lifetime
 	}
+
+
+func play_run_end_disappear(duration: float) -> void:
+	if _run_end_disappearing:
+		return
+
+	_run_end_disappearing = true
+	_disable_attack_targeting()
+	remove_from_group("attackable_monsters")
+	is_walking = false
+	walk_timer.stop()
+	set_physics_process(false)
+
+	var fade_tween: Tween = create_tween()
+	fade_tween.set_parallel(true)
+	fade_tween.tween_property(self, "modulate:a", 0.0, maxf(0.01, duration))
+	fade_tween.tween_property(sprite, "self_modulate:a", 0.0, maxf(0.01, duration))
 
 
 func push_lifetime_slow(slow_scale: float) -> void:
@@ -325,17 +347,19 @@ func _start_expire_sequence() -> void:
 	sprite.modulate.a = 1.0
 
 
-func _start_death_sequence() -> void:
+func _start_death_sequence(show_burn_scorch: bool = true) -> void:
 	if _state != MonsterState.ALIVE:
 		return
 
-	var fx_duration: float = maxf(death_particles.lifetime, burn_scorch.lifetime) + 0.05
+	var fx_duration: float = death_particles.lifetime + 0.05
+	if show_burn_scorch:
+		fx_duration = maxf(fx_duration, burn_scorch.lifetime + 0.05)
 	_begin_despawn(MonsterState.DYING, fx_duration)
 	killed.emit(self)
 	sprite.visible = false
 	death_marker.visible = false
 	death_particles.emitting = true
-	burn_scorch.emitting = true
+	burn_scorch.emitting = show_burn_scorch
 
 
 func _begin_despawn(next_state: MonsterState, duration: float) -> void:
@@ -504,9 +528,29 @@ func _get_move_bounds_center() -> Vector2:
 
 
 func _clamp_to_move_bounds(target_position: Vector2) -> Vector2:
+	var move_bounds_min: Vector2 = _get_move_bounds_min()
+	var move_bounds_max: Vector2 = _get_move_bounds_max()
 	return Vector2(
-		clampf(target_position.x, Globals.MONSTERS_FIELD_MIN.x, Globals.MONSTERS_FIELD_MAX.x),
-		clampf(target_position.y, Globals.MONSTERS_FIELD_MIN.y, Globals.MONSTERS_FIELD_MAX.y)
+		clampf(target_position.x, move_bounds_min.x, move_bounds_max.x),
+		clampf(target_position.y, move_bounds_min.y, move_bounds_max.y)
+	)
+
+
+func _get_move_bounds_min() -> Vector2:
+	var inset_x: float = minf(_collision_radius, maxf(0.0, Globals.MONSTERS_FIELD_SIZE_X * 0.5 - 1.0))
+	var inset_y: float = minf(_collision_radius, maxf(0.0, Globals.MONSTERS_FIELD_SIZE_Y * 0.5 - 1.0))
+	return Vector2(
+		Globals.MONSTERS_FIELD_MIN.x + inset_x,
+		Globals.MONSTERS_FIELD_MIN.y + inset_y
+	)
+
+
+func _get_move_bounds_max() -> Vector2:
+	var inset_x: float = minf(_collision_radius, maxf(0.0, Globals.MONSTERS_FIELD_SIZE_X * 0.5 - 1.0))
+	var inset_y: float = minf(_collision_radius, maxf(0.0, Globals.MONSTERS_FIELD_SIZE_Y * 0.5 - 1.0))
+	return Vector2(
+		Globals.MONSTERS_FIELD_MAX.x - inset_x,
+		Globals.MONSTERS_FIELD_MAX.y - inset_y
 	)
 
 

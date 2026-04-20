@@ -2,9 +2,9 @@ extends Node
 
 const INITIAL_RUNES: int = 3000
 const MONSTERS_FIELD_POS_X: float = 65.0
-const MONSTERS_FIELD_POS_Y: float = 55.0
-const MONSTERS_FIELD_SIZE_X: float = 815.0
-const MONSTERS_FIELD_SIZE_Y: float = 525.0
+const MONSTERS_FIELD_POS_Y: float = 120.0
+const MONSTERS_FIELD_SIZE_X: float = 900.0
+const MONSTERS_FIELD_SIZE_Y: float = 550.0
 const MONSTERS_FIELD_MIN: Vector2 = Vector2(
 	MONSTERS_FIELD_POS_X, MONSTERS_FIELD_POS_Y
 )

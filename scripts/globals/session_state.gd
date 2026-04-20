@@ -37,7 +37,7 @@ var _active_run_index: int = 0
 var _run_active: bool = false
 var _lingering_monsters: Array[Dictionary] = []
 var _last_run_summary: Dictionary = {}
-var _drain_per_second: int = 0
+var _drain_per_second: int = 1
 var _population_tick_remainder: float = 0.0
 
 
@@ -61,7 +61,7 @@ func reset_session() -> void:
 	_run_active = false
 	_lingering_monsters.clear()
 	_last_run_summary = {}
-	_drain_per_second = 0
+	_drain_per_second = 1
 	_population_tick_remainder = 0.0
 	_sync_unlocked_slots_to_current_tier()
 	session_reset.emit()
@@ -242,6 +242,7 @@ func start_run() -> bool:
 	_selection_locked = true
 	_active_run_index += 1
 	_elapsed_run_time = 0.0
+	@warning_ignore("narrowing_conversion")
 	_drain_per_second = 0.0
 	_initialize_objective_progress()
 	selection_changed.emit()
@@ -437,6 +438,17 @@ func get_effect_total(stat_name: String) -> float:
 	return total_value
 
 
+func has_selected_rune_family(family_name: String) -> bool:
+	if family_name.is_empty():
+		return false
+
+	for rune_id: String in _selected_rune_ids:
+		var rune_config: Dictionary = _rune_definitions.get(rune_id, {})
+		if str(rune_config.get("family", "")) == family_name:
+			return true
+	return false
+
+
 func get_attack_radius(base_value: float) -> float:
 	return base_value + get_effect_total("attack_radius")
 
@@ -466,19 +478,9 @@ func is_stasis_field_enabled() -> bool:
 	return get_effect_total("stasis_field_enabled") > 0.0
 
 
-func is_monster_spawn_burst_enabled() -> bool:
-	return get_effect_total("monster_spawn_burst_enabled") > 0.0
-
-
-func is_monster_expire_burst_enabled() -> bool:
-	return get_effect_total("monster_expire_burst_enabled") > 0.0
-
-
-func is_monster_kill_burst_enabled() -> bool:
-	return get_effect_total("monster_kill_burst_enabled") > 0.0
-
-
 func get_monster_burst_projectile_count() -> int:
+	if not has_selected_rune_family("Rupture"):
+		return 0
 	return 1 + maxi(0, int(round(get_effect_total("monster_burst_projectile_count_bonus"))))
 
 
