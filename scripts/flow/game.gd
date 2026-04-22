@@ -16,10 +16,8 @@ const BUBBLE_VOLUME_BASE: float = -6.0
 const BUBBLE_VOLUME_RANGE: float = 1.5
 
 @onready var monster_spawner: MonsterSpawner = $OuterFrame/PlayfieldFrame/World/MonsterSpawner
-@onready var projectile_container: Node2D = $OuterFrame/PlayfieldFrame/World/Projectiles
+@onready var projectile_container: Node2D = $OuterFrame/PlayfieldFrame/World/ProjectileLayer
 @onready var player_attack: PlayerAttack = $OuterFrame/PlayfieldFrame/World/PlayerAttack
-@onready var drain_label: Label = $OuterFrame/TopBar/TopBarMargin/TopBarContent/DrainLabel
-@onready var tier_label: Label = $OuterFrame/TopBar/TopBarMargin/TopBarContent/TierLabel
 @onready var objectives_scroll: ObjectivesScrollWidget = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/ObjectivesScroll
 @onready var exit_button: Button = $OuterFrame/SidePanel/SidePanelMargin/SidePanelContent/ExitButton
 @onready var population_counter = $PopulationCounter
@@ -85,7 +83,6 @@ func _apply_rune_effects() -> void:
 	player_attack.lifetime_slow_scale = SessionState.get_lifetime_slow_scale(player_attack.lifetime_slow_scale)
 	player_attack.stasis_field_enabled = SessionState.is_stasis_field_enabled()
 	player_attack.refresh_runtime_configuration()
-	tier_label.text = "Tier %d" % SessionState.get_current_tier()
 
 
 func _on_monster_spawned(monster: Monster) -> void:
@@ -182,12 +179,11 @@ func _capture_surviving_monsters() -> void:
 		SessionState.add_lingering_monster(monster.to_lingering_data())
 
 
-func _refresh_population_ui(current_population: int, drain_per_second: int) -> void:
+func _refresh_population_ui(current_population: int, _drain_per_second: int) -> void:
 	population_counter.set_population_value(SessionState.format_population(current_population))
 	var start_pop: int = SessionState.get_population_start()
 	var ratio: float = float(current_population) / float(start_pop) if start_pop > 0 else 0.0
 	population_counter.set_progress(ratio)
-	drain_label.text = "Drain / sec: %s" % SessionState.format_population(drain_per_second)
 
 
 func _refresh_objectives_ui() -> void:

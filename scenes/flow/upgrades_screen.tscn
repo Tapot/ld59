@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://k2cbmyiyctyu" path="res://scripts/flow/upgrades_screen.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://doone2xa8ro2g" path="res://scenes/ui/widgets/volume_controls.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/ui/widgets/population_counter.tscn" id="3"]
-[ext_resource type="Texture2D" uid="uid://x6ysj3va55vx" path="res://assets/images/ui/runes_back.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/images/ui/runes_back.png" id="4"]
 [ext_resource type="Texture2D" uid="uid://bdtmr1x8yjvbj" path="res://assets/images/ui/button_normal.png" id="5_btnn"]
 [ext_resource type="Texture2D" uid="uid://ceclwb12p2q68" path="res://assets/images/ui/button_hover.png" id="6_btnh"]
 [ext_resource type="FontFile" uid="uid://kxq0dfj5rsu8" path="res://assets/fonts/Jolly_Lodger/JollyLodger-Regular.ttf" id="7_font"]
@@ -26,7 +26,7 @@ texture = ExtResource("5_btnn")
 [sub_resource type="StyleBoxTexture" id="3"]
 texture = ExtResource("6_btnh")
 
-[node name="RuneSelection" type="Control" unique_id=65503313]
+[node name="RuneSelectionScreen" type="Control" unique_id=65503313]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -79,7 +79,6 @@ layout_mode = 2
 theme_override_constants/separation = 4
 
 [node name="TierLabel" type="Label" parent="Paper/Margin/Content/Header" unique_id=1797154678]
-visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("7_font")
@@ -95,14 +94,6 @@ theme_override_constants/separation = 48
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
-
-[node name="RuneListLabel" type="Label" parent="Paper/Margin/Content/MainArea/LeftPanel" unique_id=739972473]
-visible = false
-layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("7_font")
-theme_override_font_sizes/font_size = 18
-text = "Available Runes"
 
 [node name="RuneListScroll" type="ScrollContainer" parent="Paper/Margin/Content/MainArea/LeftPanel" unique_id=2060408123]
 layout_mode = 2

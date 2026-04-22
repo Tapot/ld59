@@ -2,9 +2,7 @@ extends Control
 
 
 const INTRO_SCENE_PATH: String = "res://scenes/flow/intro_sequence.tscn"
-const MAIN_MENU_BACKGROUND_PATH: String = "res://start_background.png"
 
-@onready var background: TextureRect = $Background
 @onready var start_button: Button = $Content/StartButton
 
 
